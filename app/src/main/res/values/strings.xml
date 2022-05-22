@@ -54,5 +54,6 @@
   <string name="content_description_search">Editar contenido</string>
   <string name="favorite">favorito</string>
   <string name="content_description_favorite">Sitio Favorito</string>
+    <string name="search">buscar</string>
 
 </resources>

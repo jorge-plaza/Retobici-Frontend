@@ -491,18 +491,27 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
     @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (!isMapboxTokenProvided()) {
-            showNoTokenErrorDialog()
-            return
-        }
-
-        if (PermissionsManager.areLocationPermissionsGranted(this)) {
-            requestStoragePermission()
-        } else {
-            permissionsManager.requestLocationPermissions(this)
-        }
 
         binding = MapboxActivityTurnByTurnExperienceBinding.inflate(layoutInflater)
+
+        binding.topAppBar.setNavigationOnClickListener {
+            binding.drawerLayout.open()
+        }
+
+        binding.topAppBar.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.search -> {
+                    // Handle search icon press
+                    true
+                }
+                R.id.more -> {
+                    // Handle more item (inside overflow menu) press
+                    true
+                }
+                else -> false
+            }
+        }
+
         setContentView(binding.root)
         mapboxMap = binding.mapView.getMapboxMap()
 
@@ -762,7 +771,8 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
         // start location simulation along the primary route
         startSimulation(routes.first())
 
-        // show UI elements
+        // show UI elements & hide
+        binding.topAppBar.visibility = View.GONE
         binding.soundButton.visibility = View.VISIBLE
         binding.routeOverview.visibility = View.VISIBLE
         binding.tripProgressCard.visibility = View.VISIBLE
@@ -779,6 +789,7 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
         mapboxReplayer.stop()
 
         // hide UI elements
+        binding.topAppBar.visibility = View.VISIBLE
         binding.soundButton.visibility = View.INVISIBLE
         binding.maneuverView.visibility = View.INVISIBLE
         binding.routeOverview.visibility = View.INVISIBLE
