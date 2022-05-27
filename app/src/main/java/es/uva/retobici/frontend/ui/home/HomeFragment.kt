@@ -1,4 +1,4 @@
-package es.uva.retobici.frontend.turnbyturn
+package es.uva.retobici.frontend.ui.home
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -12,16 +12,20 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.location.Location
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.gson.JsonParser
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
@@ -32,13 +36,17 @@ import com.mapbox.bindgen.Expected
 import com.mapbox.geojson.Point
 import com.mapbox.maps.*
 import com.mapbox.maps.extension.style.layers.properties.generated.IconAnchor
+import com.mapbox.maps.extension.style.style
 import com.mapbox.maps.plugin.LocationPuck2D
 import com.mapbox.maps.plugin.animation.camera
 import com.mapbox.maps.plugin.annotation.annotations
-import com.mapbox.maps.plugin.annotation.generated.*
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotation
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
+import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
 import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.locationcomponent.location
 import com.mapbox.maps.viewannotation.viewAnnotationOptions
+import com.mapbox.navigation.R
 import com.mapbox.navigation.base.TimeFormat
 import com.mapbox.navigation.base.extensions.applyDefaultNavigationOptions
 import com.mapbox.navigation.base.extensions.applyLanguageAndVoiceUnitOptions
@@ -58,9 +66,8 @@ import com.mapbox.navigation.core.trip.session.LocationMatcherResult
 import com.mapbox.navigation.core.trip.session.LocationObserver
 import com.mapbox.navigation.core.trip.session.RouteProgressObserver
 import com.mapbox.navigation.core.trip.session.VoiceInstructionsObserver
-import com.mapbox.navigation.examples.R
-import com.mapbox.navigation.examples.databinding.ActivityMainBinding
 import com.mapbox.navigation.examples.databinding.AnnotationViewBinding
+import com.mapbox.navigation.examples.databinding.FragmentHomeBinding
 import com.mapbox.navigation.examples.databinding.MapboxActivityTurnByTurnExperienceBinding
 import com.mapbox.navigation.ui.base.util.MapboxNavigationConsumer
 import com.mapbox.navigation.ui.maneuver.api.MapboxManeuverApi
@@ -79,11 +86,7 @@ import com.mapbox.navigation.ui.maps.route.line.api.MapboxRouteLineView
 import com.mapbox.navigation.ui.maps.route.line.model.MapboxRouteLineOptions
 import com.mapbox.navigation.ui.maps.route.line.model.RouteLine
 import com.mapbox.navigation.ui.tripprogress.api.MapboxTripProgressApi
-import com.mapbox.navigation.ui.tripprogress.model.DistanceRemainingFormatter
-import com.mapbox.navigation.ui.tripprogress.model.EstimatedTimeToArrivalFormatter
-import com.mapbox.navigation.ui.tripprogress.model.PercentDistanceTraveledFormatter
-import com.mapbox.navigation.ui.tripprogress.model.TimeRemainingFormatter
-import com.mapbox.navigation.ui.tripprogress.model.TripProgressUpdateFormatter
+import com.mapbox.navigation.ui.tripprogress.model.*
 import com.mapbox.navigation.ui.tripprogress.view.MapboxTripProgressView
 import com.mapbox.navigation.ui.voice.api.MapboxSpeechApi
 import com.mapbox.navigation.ui.voice.api.MapboxVoiceInstructionsPlayer
@@ -91,34 +94,20 @@ import com.mapbox.navigation.ui.voice.model.SpeechAnnouncement
 import com.mapbox.navigation.ui.voice.model.SpeechError
 import com.mapbox.navigation.ui.voice.model.SpeechValue
 import com.mapbox.navigation.ui.voice.model.SpeechVolume
-import java.util.Locale
+//import es.uva.retobici.frontend.turnbyturn.MAPBOX_ACCESS_TOKEN_PLACEHOLDER
+import es.uva.retobici.frontend.turnbyturn.TurnByTurnExperienceActivity
+import java.util.*
 
-/**
- * This example demonstrates a basic turn-by-turn navigation experience by putting together some UI elements to showcase
- * navigation camera transitions, guidance instructions banners and playback, and progress along the route.
- *
- * Before running the example make sure you have put your access_token in the correct place
- * inside [app/src/main/res/values/mapbox_access_token.xml]. If not present then add this file
- * at the location mentioned above and add the following content to it
- *
- * <?xml version="1.0" encoding="utf-8"?>
- * <resources xmlns:tools="http://schemas.android.com/tools">
- *     <string name="mapbox_access_token"><PUT_YOUR_ACCESS_TOKEN_HERE></string>
- * </resources>
- *
- * The example assumes that you have granted location permissions and does not enforce it. However,
- * the permission is essential for proper functioning of this example. The example also uses replay
- * location engine to facilitate navigation without actually physically moving.
- *
- * How to use this example:
- * - You can long-click the map to select a destination.
- * - The guidance will start to the selected destination while simulating location updates.
- * You can disable simulation by commenting out the [replayLocationEngine] setter in [NavigationOptions].
- * Then, the device's real location will be used.
- * - At any point in time you can finish guidance or select a new destination.
- * - You can use buttons to mute/unmute voice instructions, recenter the camera, or show the route overview.
- */
-class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
+class HomeFragment : Fragment(), PermissionsListener {
+
+    private val BUTTON_ANIMATION_DURATION = 1500L
+
+    private var _binding: FragmentHomeBinding? = null
+    private lateinit var bottomSheetBehavior: BottomSheetBehavior<LinearLayout>
+
+    // This property is only valid between onCreateView and
+    // onDestroyView.
+    private val binding get() = _binding!!
 
     private companion object {
         private const val BUTTON_ANIMATION_DURATION = 1500L
@@ -138,11 +127,6 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
      * Debug observer that makes sure the replayer has always an up-to-date information to generate mock updates.
      */
     private val replayProgressObserver = ReplayProgressObserver(mapboxReplayer)
-
-    /**
-     * Bindings to the example layout.
-     */
-    private lateinit var binding: MapboxActivityTurnByTurnExperienceBinding
 
     /**
      * Mapbox Maps entry point obtained from the [MapView].
@@ -367,7 +351,7 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
         maneuvers.fold(
             { error ->
                 Toast.makeText(
-                    this@TurnByTurnExperienceActivity,
+                    this@HomeFragment.requireContext(),
                     error.errorMessage,
                     Toast.LENGTH_SHORT
                 ).show()
@@ -426,12 +410,11 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
             viewportDataSource.evaluate()
         }
     }
-
     private val permissionsManager = PermissionsManager(this)
 
     override fun onExplanationNeeded(permissionsToExplain: MutableList<String>?) {
         Toast.makeText(
-            this,
+            this.requireContext(),
             "This app needs location and storage permissions in order to show its functionality.",
             Toast.LENGTH_LONG
         ).show()
@@ -442,7 +425,7 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
             requestStoragePermission()
         } else {
             Toast.makeText(
-                this,
+                this.requireContext(),
                 "You didn't grant the permissions required to use the app",
                 Toast.LENGTH_LONG
             ).show()
@@ -462,77 +445,60 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
         val permission = Manifest.permission.WRITE_EXTERNAL_STORAGE
         val permissionsNeeded: MutableList<String> = ArrayList()
         if (
-            ContextCompat.checkSelfPermission(this, permission) !=
+            ContextCompat.checkSelfPermission(this.requireContext(), permission) !=
             PackageManager.PERMISSION_GRANTED
         ) {
             permissionsNeeded.add(permission)
             ActivityCompat.requestPermissions(
-                this,
+                this.requireActivity(),
                 permissionsNeeded.toTypedArray(),
                 10
             )
         }
     }
 
-    private fun isMapboxTokenProvided() =
-        getString(R.string.mapbox_access_token) != MAPBOX_ACCESS_TOKEN_PLACEHOLDER
+    //private fun isMapboxTokenProvided() = getString(com.mapbox.navigation.examples.R.string.mapbox_access_token) != MAPBOX_ACCESS_TOKEN_PLACEHOLDER
 
+    /**
     private fun showNoTokenErrorDialog() {
-        AlertDialog.Builder(this)
-            .setTitle(getString(R.string.noTokenDialogTitle))
-            .setMessage(getString(R.string.noTokenDialogBody))
+        AlertDialog.Builder(this.requireContext())
+            .setTitle(getString(com.mapbox.navigation.examples.R.string.noTokenDialogTitle))
+            .setMessage(getString(com.mapbox.navigation.examples.R.string.noTokenDialogBody))
             .setCancelable(false)
             .setPositiveButton("Ok") { _, _ ->
                 finish()
             }
             .show()
-    }
+    }*/
 
-    @SuppressLint("MissingPermission")
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        val homeViewModel = ViewModelProvider(this)[HomeViewModel::class.java]
+        _binding = FragmentHomeBinding.inflate(inflater, container, false)
+        bottomSheetBehavior = BottomSheetBehavior.from(binding.persistentBottomSheet.persistentBottomSheet)
+        bottomSheetBehavior.addBottomSheetCallback(object :
+            BottomSheetBehavior.BottomSheetCallback() {
 
-        binding = MapboxActivityTurnByTurnExperienceBinding.inflate(layoutInflater)
-
-        binding.topAppBar.setNavigationOnClickListener {
-            binding.drawerLayout.open()
-        }
-
-        binding.topAppBar.setOnMenuItemClickListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.search -> {
-                    // Handle search icon press
-                    true
-                }
-                R.id.more -> {
-                    // Handle more item (inside overflow menu) press
-                    true
-                }
-                else -> false
+            override fun onSlide(bottomSheet: View, slideOffset: Float) {
+                // handle onSlide
             }
-        }
 
-        binding.navigationView.setNavigationItemSelectedListener { menuItem ->
-            // Handle menu item selected
-            when (menuItem.itemId) {
-                R.id.drawer_item_rutas -> {
-                    // Handle search icon press
-                    menuItem.isChecked = true
-                    binding.drawerLayout.close()
-                    true
-                }
-                else -> false
+            override fun onStateChanged(bottomSheet: View, newState: Int) {
+
             }
-        }
+        })
 
-        setContentView(binding.root)
+
         mapboxMap = binding.mapView.getMapboxMap()
 
         // initialize the location puck
         binding.mapView.location.apply {
             this.locationPuck = LocationPuck2D(
                 bearingImage = ContextCompat.getDrawable(
-                    this@TurnByTurnExperienceActivity,
+                    this@HomeFragment.requireContext(),
                     com.mapbox.navigation.R.drawable.mapbox_navigation_puck_icon
                 )
             )
@@ -545,8 +511,8 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
             MapboxNavigationProvider.retrieve()
         } else {
             MapboxNavigationProvider.create(
-                NavigationOptions.Builder(this.applicationContext)
-                    .accessToken(getString(R.string.mapbox_access_token))
+                NavigationOptions.Builder(this.requireContext())
+                    .accessToken(getString(com.mapbox.navigation.examples.R.string.mapbox_access_token))
                     // comment out the location engine setting block to disable simulation
                     //.locationEngine(replayLocationEngine)
                     .build()
@@ -597,31 +563,31 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
 
         // initialize bottom progress view
         tripProgressApi = MapboxTripProgressApi(
-            TripProgressUpdateFormatter.Builder(this)
+            TripProgressUpdateFormatter.Builder(this.requireContext())
                 .distanceRemainingFormatter(
                     DistanceRemainingFormatter(distanceFormatterOptions)
                 )
                 .timeRemainingFormatter(
-                    TimeRemainingFormatter(this)
+                    TimeRemainingFormatter(this.requireContext())
                 )
                 .percentRouteTraveledFormatter(
                     PercentDistanceTraveledFormatter()
                 )
                 .estimatedTimeToArrivalFormatter(
-                    EstimatedTimeToArrivalFormatter(this, TimeFormat.NONE_SPECIFIED)
+                    EstimatedTimeToArrivalFormatter(this.requireContext(), TimeFormat.NONE_SPECIFIED)
                 )
                 .build()
         )
 
         // initialize voice instructions api and the voice instruction player
         speechApi = MapboxSpeechApi(
-            this,
-            getString(R.string.mapbox_access_token),
+            this.requireContext(),
+            getString(com.mapbox.navigation.examples.R.string.mapbox_access_token),
             Locale.US.language
         )
         voiceInstructionsPlayer = MapboxVoiceInstructionsPlayer(
-            this,
-            getString(R.string.mapbox_access_token),
+            this.requireContext(),
+            getString(com.mapbox.navigation.examples.R.string.mapbox_access_token),
             Locale.US.language
         )
 
@@ -629,14 +595,14 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
         // the route line below road labels layer on the map
         // the value of this option will depend on the style that you are using
         // and under which layer the route line should be placed on the map layers stack
-        val mapboxRouteLineOptions = MapboxRouteLineOptions.Builder(this)
+        val mapboxRouteLineOptions = MapboxRouteLineOptions.Builder(this.requireContext())
             .withRouteLineBelowLayerId("road-label")
             .build()
         routeLineApi = MapboxRouteLineApi(mapboxRouteLineOptions)
         routeLineView = MapboxRouteLineView(mapboxRouteLineOptions)
 
         // initialize maneuver arrow view to draw arrows on the map
-        val routeArrowOptions = RouteArrowOptions.Builder(this).build()
+        val routeArrowOptions = RouteArrowOptions.Builder(this.requireContext()).build()
         routeArrowView = MapboxRouteArrowView(routeArrowOptions)
 
         // load map style
@@ -658,11 +624,11 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
         }
         binding.recenter.setOnClickListener {
             navigationCamera.requestNavigationCameraToFollowing()
-            binding.routeOverview.showTextAndExtend(BUTTON_ANIMATION_DURATION)
+            binding.routeOverview.showTextAndExtend(this.BUTTON_ANIMATION_DURATION)
         }
         binding.routeOverview.setOnClickListener {
             navigationCamera.requestNavigationCameraToOverview()
-            binding.recenter.showTextAndExtend(BUTTON_ANIMATION_DURATION)
+            binding.recenter.showTextAndExtend(this.BUTTON_ANIMATION_DURATION)
         }
         binding.soundButton.setOnClickListener {
             // mute/unmute voice instructions
@@ -675,6 +641,12 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
         // start the trip session to being receiving location updates in free drive
         // and later when a route is set also receiving route progress updates
         mapboxNavigation.startTripSession()
+        return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onStart() {
@@ -739,7 +711,7 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
         mapboxNavigation.requestRoutes(
             RouteOptions.builder()
                 .applyDefaultNavigationOptions()
-                .applyLanguageAndVoiceUnitOptions(this)
+                .applyLanguageAndVoiceUnitOptions(this.requireContext())
                 .coordinatesList(listOf(originPoint, destination))
                 // provide the bearing for the origin of the request to ensure
                 // that the returned route faces in the direction of the current user movement
@@ -785,7 +757,7 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
         startSimulation(routes.first())
 
         // show UI elements & hide
-        binding.topAppBar.visibility = View.GONE
+        //binding.topAppBar.visibility = View.GONE
         binding.soundButton.visibility = View.VISIBLE
         binding.routeOverview.visibility = View.VISIBLE
         binding.tripProgressCard.visibility = View.VISIBLE
@@ -802,7 +774,7 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
         mapboxReplayer.stop()
 
         // hide UI elements
-        binding.topAppBar.visibility = View.VISIBLE
+        //binding.topAppBar.visibility = View.VISIBLE
         binding.soundButton.visibility = View.INVISIBLE
         binding.maneuverView.visibility = View.INVISIBLE
         binding.routeOverview.visibility = View.INVISIBLE
@@ -823,8 +795,8 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
     private fun addAnnotationToMap() {
 // Create an instance of the Annotation API and get the PointAnnotationManager.
         bitmapFromDrawableRes(
-            this@TurnByTurnExperienceActivity,
-            R.drawable.red_marker
+            this@HomeFragment.requireContext(),
+            com.mapbox.navigation.examples.R.drawable.red_marker
         )?.let {
             val annotationApi = binding.mapView.annotations
             val pointAnnotationManager = annotationApi.createPointAnnotationManager()
@@ -854,11 +826,16 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
                 )
             }
             val listPoints: List<PointAnnotation> = pointAnnotationManager.create(list)
-            addViewAnnotations(listPoints)
+            //addViewAnnotations(listPoints)
             pointAnnotationManager.addClickListener{
-                stopClicked ->
+                    stopClicked ->
                 val viewAnotationManager = binding.mapView.viewAnnotationManager
                 val viewAnnotation = viewAnotationManager.getViewAnnotationByFeatureId(stopClicked.featureIdentifier)
+
+                if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED)
+                    bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+                else
+                    bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
 
                 viewAnnotation?.visibility = View.VISIBLE
                 println("------------------------")
@@ -903,7 +880,7 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
         val point: Point = Point.fromLngLat(-4.731,41.653)
         val viewAnnotationManager = binding.mapView.viewAnnotationManager
         val viewAnnotation = viewAnnotationManager.addViewAnnotation(
-            resId = R.layout.annotation_view,
+            resId = com.mapbox.navigation.examples.R.layout.annotation_view,
             options = viewAnnotationOptions {
                 geometry(point)
                 associatedFeatureId(listStops[0].featureIdentifier)
@@ -936,8 +913,4 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
             }
         }
     }
-
 }
-private const val MAPBOX_ACCESS_TOKEN_PLACEHOLDER = "YOUR_MAPBOX_ACCESS_TOKEN_GOES_HERE"
-
-
