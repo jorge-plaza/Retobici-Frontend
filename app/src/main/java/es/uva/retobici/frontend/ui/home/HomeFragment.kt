@@ -26,6 +26,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
@@ -96,6 +97,7 @@ import com.mapbox.navigation.ui.voice.model.SpeechValue
 import com.mapbox.navigation.ui.voice.model.SpeechVolume
 //import es.uva.retobici.frontend.turnbyturn.MAPBOX_ACCESS_TOKEN_PLACEHOLDER
 import es.uva.retobici.frontend.turnbyturn.TurnByTurnExperienceActivity
+import org.json.JSONObject
 import java.util.*
 
 class HomeFragment : Fragment(), PermissionsListener {
@@ -491,6 +493,14 @@ class HomeFragment : Fragment(), PermissionsListener {
             }
         })
 
+        binding.qrScan.setOnClickListener {
+            //Load QR scan Fragment
+        }
+
+        binding.persistentBottomSheet.pedalBikeLayout.setOnClickListener {
+
+        }
+
 
         mapboxMap = binding.mapView.getMapboxMap()
 
@@ -802,6 +812,7 @@ class HomeFragment : Fragment(), PermissionsListener {
             val pointAnnotationManager = annotationApi.createPointAnnotationManager()
             val json = """
                 {
+                    title: "Plaza Zorrilla",
                 	stop: "jorge",
                     lng: -4.731,
                     lat: 41.635
@@ -838,6 +849,7 @@ class HomeFragment : Fragment(), PermissionsListener {
                     bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
 
                 viewAnnotation?.visibility = View.VISIBLE
+                setStopInfo(stopClicked)
                 println("------------------------")
                 println(stopClicked.getData())
                 println("------------------------")
@@ -845,6 +857,11 @@ class HomeFragment : Fragment(), PermissionsListener {
                 true
             }
         }
+    }
+
+    private fun setStopInfo(stopClicked: PointAnnotation) {
+        val data = JSONObject(stopClicked.getData().toString())
+        binding.persistentBottomSheet.stopTitle.text = data.get("title").toString()
     }
 
     private fun bitmapFromDrawableRes(context: Context, @DrawableRes resourceId: Int) =
