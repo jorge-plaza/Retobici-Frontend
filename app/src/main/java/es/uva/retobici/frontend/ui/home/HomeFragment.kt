@@ -39,7 +39,10 @@ import com.mapbox.maps.*
 import com.mapbox.maps.extension.style.layers.properties.generated.IconAnchor
 import com.mapbox.maps.extension.style.style
 import com.mapbox.maps.plugin.LocationPuck2D
+import com.mapbox.maps.plugin.animation.MapAnimationOptions.Companion.mapAnimationOptions
 import com.mapbox.maps.plugin.animation.camera
+import com.mapbox.maps.plugin.animation.easeTo
+import com.mapbox.maps.plugin.animation.flyTo
 import com.mapbox.maps.plugin.annotation.annotations
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotation
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
@@ -838,21 +841,19 @@ class HomeFragment : Fragment(), PermissionsListener {
             }
             val listPoints: List<PointAnnotation> = pointAnnotationManager.create(list)
             //addViewAnnotations(listPoints)
-            pointAnnotationManager.addClickListener{
-                    stopClicked ->
-                val viewAnotationManager = binding.mapView.viewAnnotationManager
-                val viewAnnotation = viewAnotationManager.getViewAnnotationByFeatureId(stopClicked.featureIdentifier)
+            pointAnnotationManager.addClickListener{ stopClicked ->
+                val cameraPosition = CameraOptions.Builder()
+                    .zoom(15.5)
+                    .center(stopClicked.geometry)
+                    .build()
+                // Move to the annotation in the map
+                mapboxMap.easeTo(cameraPosition, mapAnimationOptions { duration(2000) })
 
-                if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED)
-                    bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
-                else
-                    bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+                //Open the bottom drawer
+                bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
 
-                viewAnnotation?.visibility = View.VISIBLE
+                //viewAnnotation?.visibility = View.VISIBLE
                 setStopInfo(stopClicked)
-                println("------------------------")
-                println(stopClicked.getData())
-                println("------------------------")
 
                 true
             }

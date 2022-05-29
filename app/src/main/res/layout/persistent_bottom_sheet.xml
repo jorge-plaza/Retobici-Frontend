@@ -27,6 +27,14 @@
         android:text="@string/default_stop_title"
         android:textAlignment="center"
         android:textSize="25sp" />
+    <TextView
+        android:id="@+id/stop_distance"
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:gravity="top|center_horizontal"
+        android:text="@string/default_stop_distance"
+        android:textAlignment="center"
+        android:textSize="12sp" />
 
     <com.google.android.material.divider.MaterialDivider
         android:layout_width="match_parent"
@@ -159,7 +167,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
-            android:text="@string/km_away_from_stop"
+            android:text="@string/how_to_approach"
             app:icon="@drawable/ic_baseline_directions_24"
             style="@style/Widget.MaterialComponents.Button.Icon"
             />

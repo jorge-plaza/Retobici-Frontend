@@ -84,5 +84,7 @@
   <string name="count_bike_stop">7</string>
   <string name="bottom_drawer_slash">—</string>
   <string name="km_away_from_stop">2,2 km</string>
+  <string name="default_stop_distance">2,2km</string>
+  <string name="how_to_approach">Como llegar</string>
 
 </resources>
