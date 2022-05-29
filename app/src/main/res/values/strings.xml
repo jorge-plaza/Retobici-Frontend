@@ -73,5 +73,16 @@
     <string name="menu_slideshow">Slideshow</string>
     <string name="title_activity_master">MasterActivity</string>
     <string name="bottom_sheet">Panel inferior</string>
+    <string name="qr_content_desc">QR scan button</string>
+    <string name="pedal_bike_descriptor">Bicicleta a pedales</string>
+    <string name="pedal_bike" >Bicicleta a pedales</string>
+  <string name="electric_bike">Bicicleta eléctrica</string>
+  <string name="bike_stop_available">Paradas libres</string>
+  <string name="default_stop_title">default name</string>
+  <string name="count_pedal_bike">4</string>
+  <string name="count_electric_bike">1</string>
+  <string name="count_bike_stop">7</string>
+  <string name="bottom_drawer_slash">—</string>
+  <string name="km_away_from_stop">2,2 km</string>
 
 </resources>
