@@ -6,6 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.mapbox.navigation.examples.databinding.FragmentSlideshowBinding
 
@@ -22,16 +24,24 @@ class SlideshowFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val slideshowViewModel =
-            ViewModelProvider(this).get(SlideshowViewModel::class.java)
+        val slideshowViewModel : SlideshowViewModel by viewModels()
 
         _binding = FragmentSlideshowBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
+        slideshowViewModel.onCreate()
+        slideshowViewModel.stops.observe(this.viewLifecycleOwner, Observer { stops ->
+            binding.textSlideshow.text = stops[0].address
+        })
+
+        slideshowViewModel.getStops()
+
+
+        /*
         val textView: TextView = binding.textSlideshow
         slideshowViewModel.text.observe(viewLifecycleOwner) {
             textView.text = it
-        }
+        }*/
         return root
     }
 

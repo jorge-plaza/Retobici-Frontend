@@ -19,35 +19,33 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.annotation.DrawableRes
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
+import com.mapbox.android.gestures.MoveGestureDetector
 import com.mapbox.api.directions.v5.models.Bearing
 import com.mapbox.api.directions.v5.models.DirectionsRoute
 import com.mapbox.api.directions.v5.models.RouteOptions
 import com.mapbox.bindgen.Expected
 import com.mapbox.geojson.Point
 import com.mapbox.maps.*
-import com.mapbox.maps.extension.style.layers.properties.generated.IconAnchor
-import com.mapbox.maps.extension.style.style
-import com.mapbox.maps.plugin.LocationPuck2D
 import com.mapbox.maps.plugin.animation.MapAnimationOptions.Companion.mapAnimationOptions
 import com.mapbox.maps.plugin.animation.camera
 import com.mapbox.maps.plugin.animation.easeTo
-import com.mapbox.maps.plugin.animation.flyTo
 import com.mapbox.maps.plugin.annotation.annotations
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotation
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
+import com.mapbox.maps.plugin.gestures.OnMoveListener
 import com.mapbox.maps.plugin.gestures.gestures
+import com.mapbox.maps.plugin.locationcomponent.OnIndicatorBearingChangedListener
+import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.locationcomponent.location
 import com.mapbox.maps.viewannotation.viewAnnotationOptions
 import com.mapbox.navigation.R
@@ -72,7 +70,6 @@ import com.mapbox.navigation.core.trip.session.RouteProgressObserver
 import com.mapbox.navigation.core.trip.session.VoiceInstructionsObserver
 import com.mapbox.navigation.examples.databinding.AnnotationViewBinding
 import com.mapbox.navigation.examples.databinding.FragmentHomeBinding
-import com.mapbox.navigation.examples.databinding.MapboxActivityTurnByTurnExperienceBinding
 import com.mapbox.navigation.ui.base.util.MapboxNavigationConsumer
 import com.mapbox.navigation.ui.maneuver.api.MapboxManeuverApi
 import com.mapbox.navigation.ui.maneuver.view.MapboxManeuverView
@@ -99,7 +96,6 @@ import com.mapbox.navigation.ui.voice.model.SpeechError
 import com.mapbox.navigation.ui.voice.model.SpeechValue
 import com.mapbox.navigation.ui.voice.model.SpeechVolume
 //import es.uva.retobici.frontend.turnbyturn.MAPBOX_ACCESS_TOKEN_PLACEHOLDER
-import es.uva.retobici.frontend.turnbyturn.TurnByTurnExperienceActivity
 import org.json.JSONObject
 import java.util.*
 
@@ -481,7 +477,41 @@ class HomeFragment : Fragment(), PermissionsListener {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val homeViewModel = ViewModelProvider(this)[HomeViewModel::class.java]
+        //val homeViewModel = ViewModelProvider(this)[HomeViewModel::class.java]
+        val homeViewModel : HomeViewModel by viewModels()
+        var list = listOf<PointAnnotationOptions>()
+        /*homeViewModel.getStops().observe(this.viewLifecycleOwner, Observer<List<Stop>> {
+            stops -> list = stops.map {
+                val json = """
+                    {
+                        title: "Plaza Zorrilla",
+                        stop: "jorge",
+                        lng: -4.731,
+                        lat: 41.635
+                    }
+                """.trimIndent()
+                val parsed = JsonParser.parseString(json)
+                PointAnnotationOptions()
+                    .withPoint(it.location)
+                    .withData(parsed)
+            }
+        })*/
+
+
+        /*
+        val list = mutableListOf<PointAnnotationOptions>()
+            for (point in immutableList){
+                list.add(
+                    PointAnnotationOptions()
+                    .withData(parsed)
+                    .withPoint(point)
+                    .withIconImage(it)
+                    .withIconAnchor(IconAnchor.BOTTOM)
+                )
+            }
+         */
+
+
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         bottomSheetBehavior = BottomSheetBehavior.from(binding.persistentBottomSheet.persistentBottomSheet)
         bottomSheetBehavior.addBottomSheetCallback(object :
@@ -508,6 +538,7 @@ class HomeFragment : Fragment(), PermissionsListener {
         mapboxMap = binding.mapView.getMapboxMap()
 
         // initialize the location puck
+        /**
         binding.mapView.location.apply {
             this.locationPuck = LocationPuck2D(
                 bearingImage = ContextCompat.getDrawable(
@@ -518,6 +549,7 @@ class HomeFragment : Fragment(), PermissionsListener {
             setLocationProvider(navigationLocationProvider)
             enabled = true
         }
+        */
 
         // initialize Mapbox Navigation
         mapboxNavigation = if (MapboxNavigationProvider.isCreated()) {
@@ -622,15 +654,27 @@ class HomeFragment : Fragment(), PermissionsListener {
         mapboxMap.loadStyleUri(
             Style.MAPBOX_STREETS
         ) {
+            //Init the location pluck on the users location
+            initLocationComponent()
+            //Init the gesture Listener for the map used when you move the map rotate or zoom
+            setupGesturesListener()
             // add long click listener that search for a route to the clicked destination
             binding.mapView.gestures.addOnMapLongClickListener { point ->
                 findRoute(point)
                 true
             }
-
-            addAnnotationToMap()
-            //addViewAnnotation(Point.fromLngLat(-4.731,41.653))
+            addAnnotationToMap(list)
         }
+
+        //Initialization of button actions
+        binding.recenterLocation.setOnClickListener {
+            //TODO recenter map on user location
+            Toast.makeText(this.requireContext(), "recenter", Toast.LENGTH_SHORT).show()
+            val locationComponentPlugin = binding.mapView.location
+            locationComponentPlugin.addOnIndicatorPositionChangedListener(onIndicatorPositionChangedListener)
+            setupGesturesListener()
+        }
+
         // initialize view interactions
         binding.stop.setOnClickListener {
             clearRouteAndStopNavigation()
@@ -655,6 +699,56 @@ class HomeFragment : Fragment(), PermissionsListener {
         // and later when a route is set also receiving route progress updates
         mapboxNavigation.startTripSession()
         return binding.root
+    }
+
+    private fun setupGesturesListener() {
+        binding.mapView.gestures.addOnMoveListener(onMoveListener)
+    }
+
+    private fun initLocationComponent() {
+        val locationComponentPlugin = binding.mapView.location
+        locationComponentPlugin.updateSettings {
+            this.enabled = true
+            this.pulsingEnabled = true
+            this.pulsingColor = R.color.primary_material_dark
+        }
+        /** This two listeners are used to track the user location */
+        locationComponentPlugin.addOnIndicatorPositionChangedListener(onIndicatorPositionChangedListener)
+        //locationComponentPlugin.addOnIndicatorBearingChangedListener(onIndicatorBearingChangedListener)
+    }
+
+    /**
+     * Listener for map movement
+     */
+    private val onMoveListener = object : OnMoveListener {
+        override fun onMoveBegin(detector: MoveGestureDetector) {
+            onCameraTrackingDismissed()
+        }
+
+        override fun onMove(detector: MoveGestureDetector): Boolean {
+            return false
+        }
+
+        override fun onMoveEnd(detector: MoveGestureDetector) {}
+    }
+
+    /**
+     * Remove the listeners because the map have been moved, so no tracking
+     */
+    private fun onCameraTrackingDismissed() {
+        Toast.makeText(this.requireContext(), "onCameraTrackingDismissed", Toast.LENGTH_SHORT).show()
+        binding.mapView.location.removeOnIndicatorPositionChangedListener(onIndicatorPositionChangedListener)
+        //binding.mapView.location.removeOnIndicatorBearingChangedListener(onIndicatorBearingChangedListener)
+        binding.mapView.gestures.removeOnMoveListener(onMoveListener)
+    }
+
+    private val onIndicatorBearingChangedListener = OnIndicatorBearingChangedListener {
+        binding.mapView.getMapboxMap().setCamera(CameraOptions.Builder().bearing(it).build())
+    }
+
+    private val onIndicatorPositionChangedListener = OnIndicatorPositionChangedListener {
+        mapboxMap.setCamera(CameraOptions.Builder().center(it).build())
+        //binding.mapView.gestures.focalPoint = binding.mapView.getMapboxMap().pixelForCoordinate(it)
     }
 
     override fun onDestroyView() {
@@ -697,6 +791,11 @@ class HomeFragment : Fragment(), PermissionsListener {
         mapboxNavigation.unregisterLocationObserver(locationObserver)
         mapboxNavigation.unregisterVoiceInstructionsObserver(voiceInstructionsObserver)
         mapboxNavigation.unregisterRouteProgressObserver(replayProgressObserver)
+
+        /** Commented because now these listeners are not attached on the start @see initLocationComponent*/
+        binding.mapView.location.removeOnIndicatorBearingChangedListener(onIndicatorBearingChangedListener)
+        binding.mapView.location.removeOnIndicatorPositionChangedListener(onIndicatorPositionChangedListener)
+        binding.mapView.gestures.removeOnMoveListener(onMoveListener)
     }
 
     override fun onDestroy() {
@@ -805,7 +904,7 @@ class HomeFragment : Fragment(), PermissionsListener {
         }
     }
 
-    private fun addAnnotationToMap() {
+    private fun addAnnotationToMap(list: List<PointAnnotationOptions>) {
 // Create an instance of the Annotation API and get the PointAnnotationManager.
         bitmapFromDrawableRes(
             this@HomeFragment.requireContext(),
@@ -829,7 +928,8 @@ class HomeFragment : Fragment(), PermissionsListener {
                 Point.fromLngLat(-4.729,41.647),
                 Point.fromLngLat(-4.725,41.648),
             )
-            val list = mutableListOf<PointAnnotationOptions>()
+
+            /*val list = mutableListOf<PointAnnotationOptions>()
             for (point in immutableList){
                 list.add(
                     PointAnnotationOptions()
@@ -838,8 +938,13 @@ class HomeFragment : Fragment(), PermissionsListener {
                         .withIconImage(it)
                         .withIconAnchor(IconAnchor.BOTTOM)
                 )
-            }
-            val listPoints: List<PointAnnotation> = pointAnnotationManager.create(list)
+            }*/
+            val img = it
+            var listWithIcons = list.map { it.withIconImage(img) }
+            println("---------------------------")
+            println(listWithIcons)
+            println("---------------------------")
+            val listPoints: List<PointAnnotation> = pointAnnotationManager.create(listWithIcons)
             //addViewAnnotations(listPoints)
             pointAnnotationManager.addClickListener{ stopClicked ->
                 val cameraPosition = CameraOptions.Builder()
