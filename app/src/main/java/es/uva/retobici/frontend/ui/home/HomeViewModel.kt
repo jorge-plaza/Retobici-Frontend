@@ -3,7 +3,7 @@ package es.uva.retobici.frontend.ui.home
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import es.uva.retobici.frontend.data.models.Stop
+import es.uva.retobici.frontend.domain.model.Stop
 
 class HomeViewModel : ViewModel() {
 

@@ -10,7 +10,10 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.mapbox.navigation.examples.databinding.FragmentSlideshowBinding
+import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.scopes.FragmentScoped
 
+@AndroidEntryPoint
 class SlideshowFragment : Fragment() {
 
     private var _binding: FragmentSlideshowBinding? = null

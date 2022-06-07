@@ -1,8 +1,11 @@
 package es.uva.retobici.frontend.data.models
 
-class StopProvider {
-    companion object{
+import es.uva.retobici.frontend.domain.model.Stop
+import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
+class StopProvider @Inject constructor(){
         var stops:List<Stop> = emptyList()
 
         /*
@@ -17,7 +20,5 @@ class StopProvider {
             return oldstops
         }
         */
-
-    }
 
 }

@@ -23,8 +23,10 @@ import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.navigation.examples.databinding.ActivityMasterBinding
 import com.mapbox.navigation.examples.R
+import dagger.hilt.android.AndroidEntryPoint
 import es.uva.retobici.utilities.LocationListeningCallback
 
+@AndroidEntryPoint
 class MasterActivity : AppCompatActivity(), PermissionsListener {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
