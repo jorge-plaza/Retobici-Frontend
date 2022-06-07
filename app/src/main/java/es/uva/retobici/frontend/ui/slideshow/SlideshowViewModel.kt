@@ -17,11 +17,13 @@ class SlideshowViewModel @Inject constructor(
     val stops = MutableLiveData<List<Stop>>()
 
     /** When the viewModel is created in the Fragment the All the Stops are loaded*/
-    fun onCreate(){
+    init {
         viewModelScope.launch {
             val result:List<Stop> = getStopsUseCase()
             stops.postValue(result)
         }
+    }
+    fun onCreate(){
     }
 
     fun getStops(){

@@ -12,6 +12,7 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.location.Location
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,6 +25,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.gson.JsonParser
 import com.mapbox.android.core.permissions.PermissionsListener
@@ -35,6 +37,7 @@ import com.mapbox.api.directions.v5.models.RouteOptions
 import com.mapbox.bindgen.Expected
 import com.mapbox.geojson.Point
 import com.mapbox.maps.*
+import com.mapbox.maps.extension.style.layers.properties.generated.IconAnchor
 import com.mapbox.maps.plugin.animation.MapAnimationOptions.Companion.mapAnimationOptions
 import com.mapbox.maps.plugin.animation.camera
 import com.mapbox.maps.plugin.animation.easeTo
@@ -95,16 +98,20 @@ import com.mapbox.navigation.ui.voice.model.SpeechAnnouncement
 import com.mapbox.navigation.ui.voice.model.SpeechError
 import com.mapbox.navigation.ui.voice.model.SpeechValue
 import com.mapbox.navigation.ui.voice.model.SpeechVolume
+import dagger.hilt.android.AndroidEntryPoint
+import es.uva.retobici.frontend.domain.model.Stop
 //import es.uva.retobici.frontend.turnbyturn.MAPBOX_ACCESS_TOKEN_PLACEHOLDER
 import org.json.JSONObject
 import java.util.*
 
+@AndroidEntryPoint
 class HomeFragment : Fragment(), PermissionsListener {
 
     private val BUTTON_ANIMATION_DURATION = 1500L
 
     private var _binding: FragmentHomeBinding? = null
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<LinearLayout>
+    private var list:List<Stop> = listOf()
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -477,43 +484,19 @@ class HomeFragment : Fragment(), PermissionsListener {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        //val homeViewModel = ViewModelProvider(this)[HomeViewModel::class.java]
+
         val homeViewModel : HomeViewModel by viewModels()
-        var list = listOf<PointAnnotationOptions>()
-        /*homeViewModel.getStops().observe(this.viewLifecycleOwner, Observer<List<Stop>> {
-            stops -> list = stops.map {
-                val json = """
-                    {
-                        title: "Plaza Zorrilla",
-                        stop: "jorge",
-                        lng: -4.731,
-                        lat: 41.635
-                    }
-                """.trimIndent()
-                val parsed = JsonParser.parseString(json)
-                PointAnnotationOptions()
-                    .withPoint(it.location)
-                    .withData(parsed)
-            }
-        })*/
-
-
-        /*
-        val list = mutableListOf<PointAnnotationOptions>()
-            for (point in immutableList){
-                list.add(
-                    PointAnnotationOptions()
-                    .withData(parsed)
-                    .withPoint(point)
-                    .withIconImage(it)
-                    .withIconAnchor(IconAnchor.BOTTOM)
-                )
-            }
-         */
-
-
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
+        //homeViewModel.onCreate()
+        //var list = listOf<PointAnnotationOptions>()
+        homeViewModel.stops.observe(this.viewLifecycleOwner, Observer { stops ->
+            //Do some stuff with the stops
+
+            //TODO check the await or something that checks if the maps have been created
+            addAnnotationToMap(stops)
+        })
         bottomSheetBehavior = BottomSheetBehavior.from(binding.persistentBottomSheet.persistentBottomSheet)
+        bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
         bottomSheetBehavior.addBottomSheetCallback(object :
             BottomSheetBehavior.BottomSheetCallback() {
 
@@ -663,7 +646,8 @@ class HomeFragment : Fragment(), PermissionsListener {
                 findRoute(point)
                 true
             }
-            addAnnotationToMap(list)
+            Log.d("stops",list.toString())
+            //addAnnotationToMap(list)
         }
 
         //Initialization of button actions
@@ -904,51 +888,26 @@ class HomeFragment : Fragment(), PermissionsListener {
         }
     }
 
-    private fun addAnnotationToMap(list: List<PointAnnotationOptions>) {
-// Create an instance of the Annotation API and get the PointAnnotationManager.
+    private fun addAnnotationToMap(list: List<Stop>) {
         bitmapFromDrawableRes(
             this@HomeFragment.requireContext(),
             com.mapbox.navigation.examples.R.drawable.red_marker
-        )?.let {
+        )?.let { it ->
+            // Create an instance of the Annotation API and get the PointAnnotationManager.
             val annotationApi = binding.mapView.annotations
             val pointAnnotationManager = annotationApi.createPointAnnotationManager()
-            val json = """
-                {
-                    title: "Plaza Zorrilla",
-                	stop: "jorge",
-                    lng: -4.731,
-                    lat: 41.635
-                }
-            """.trimIndent()
-            val parsed = JsonParser.parseString(json)
             // Set options for the resulting symbol layer.
-            val immutableList = listOf(
-                Point.fromLngLat(-4.731,41.653),
-                Point.fromLngLat(-4.726,41.652),
-                Point.fromLngLat(-4.729,41.647),
-                Point.fromLngLat(-4.725,41.648),
-            )
-
-            /*val list = mutableListOf<PointAnnotationOptions>()
-            for (point in immutableList){
-                list.add(
-                    PointAnnotationOptions()
-                        .withData(parsed)
-                        .withPoint(point)
-                        .withIconImage(it)
-                        .withIconAnchor(IconAnchor.BOTTOM)
-                )
-            }*/
-            val img = it
-            var listWithIcons = list.map { it.withIconImage(img) }
-            println("---------------------------")
-            println(listWithIcons)
-            println("---------------------------")
-            val listPoints: List<PointAnnotation> = pointAnnotationManager.create(listWithIcons)
-            //addViewAnnotations(listPoints)
+            var listWithIcons = list.map { stop ->
+                PointAnnotationOptions()
+                    .withPoint(stop.location)
+                    .withData(stop.toJson())
+                    .withIconImage(it)
+                    .withIconAnchor(IconAnchor.BOTTOM)
+            }
+            pointAnnotationManager.create(listWithIcons)
             pointAnnotationManager.addClickListener{ stopClicked ->
                 val cameraPosition = CameraOptions.Builder()
-                    .zoom(15.5)
+                    .zoom(14.5)
                     .center(stopClicked.geometry)
                     .build()
                 // Move to the annotation in the map
@@ -967,7 +926,12 @@ class HomeFragment : Fragment(), PermissionsListener {
 
     private fun setStopInfo(stopClicked: PointAnnotation) {
         val data = JSONObject(stopClicked.getData().toString())
-        binding.persistentBottomSheet.stopTitle.text = data.get("title").toString()
+        binding.persistentBottomSheet.stopTitle.text = data.get("address").toString()
+        //TODO calculate the distance from the user to the stop
+        //binding.persistentBottomSheet.stopDistance = data.get("title").toString()
+        binding.persistentBottomSheet.countBikeStop.text = data.get("count_bike_pedal").toString()
+        binding.persistentBottomSheet.countElectricBike.text = data.get("count_bike_electric").toString()
+        binding.persistentBottomSheet.countBikeStop.text = data.get("count_bike_stop").toString()
     }
 
     private fun bitmapFromDrawableRes(context: Context, @DrawableRes resourceId: Int) =

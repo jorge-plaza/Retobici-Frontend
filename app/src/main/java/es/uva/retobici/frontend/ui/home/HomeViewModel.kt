@@ -3,29 +3,26 @@ package es.uva.retobici.frontend.ui.home
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import es.uva.retobici.frontend.domain.model.Stop
+import es.uva.retobici.frontend.domain.usecase.GetStopsUseCase
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class HomeViewModel : ViewModel() {
+@HiltViewModel
+class HomeViewModel @Inject constructor(
+    private val getStopsUseCase: GetStopsUseCase
+) : ViewModel() {
 
-    private val users: MutableLiveData<List<Stop>> by lazy {
-        MutableLiveData<List<Stop>>().also {
-            loadStops()
+    val stops = MutableLiveData<List<Stop>>()
+
+    /** When the viewModel is created in the Fragment the All the Stops are loaded*/
+    init {
+        viewModelScope.launch {
+            val result:List<Stop> = getStopsUseCase()
+            stops.postValue(result)
         }
-    }
-
-    fun getStops(): LiveData<List<Stop>> {
-        return users
-    }
-
-    private fun loadStops() {
-        // Do an asynchronous operation to fetch stops.
-        val paradas: MutableList<Stop> = mutableListOf<Stop>(
-            Stop(1,-4.731,41.653,"Plaza Mayor"),
-            Stop(2,-4.726,41.652,"Teatro Calderon"),
-            Stop(3,-4.729,41.647,"Plaza Poniente"),
-            Stop(4,-4.725,41.648,"Plaza Mayor"),
-        )
-
     }
 
 }
