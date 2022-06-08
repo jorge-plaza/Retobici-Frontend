@@ -929,7 +929,7 @@ class HomeFragment : Fragment(), PermissionsListener {
         binding.persistentBottomSheet.stopTitle.text = data.get("address").toString()
         //TODO calculate the distance from the user to the stop
         //binding.persistentBottomSheet.stopDistance = data.get("title").toString()
-        binding.persistentBottomSheet.countBikeStop.text = data.get("count_bike_pedal").toString()
+        binding.persistentBottomSheet.countPedalBike.text = data.get("count_bike_pedal").toString()
         binding.persistentBottomSheet.countElectricBike.text = data.get("count_bike_electric").toString()
         binding.persistentBottomSheet.countBikeStop.text = data.get("count_bike_stop").toString()
     }
