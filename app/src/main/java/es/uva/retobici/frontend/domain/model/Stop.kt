@@ -35,4 +35,8 @@ data class Stop (
         """.trimIndent()
         return JsonParser.parseString(json)
     }
+
+    fun getTotalBikeCount(): Int {
+        return bikes.size
+    }
 }

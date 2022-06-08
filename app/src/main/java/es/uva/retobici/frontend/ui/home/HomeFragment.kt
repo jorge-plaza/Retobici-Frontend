@@ -50,6 +50,7 @@ import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorBearingChangedListener
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.locationcomponent.location
+import com.mapbox.maps.viewannotation.ViewAnnotationManager
 import com.mapbox.maps.viewannotation.viewAnnotationOptions
 import com.mapbox.navigation.R
 import com.mapbox.navigation.base.TimeFormat
@@ -72,6 +73,7 @@ import com.mapbox.navigation.core.trip.session.LocationObserver
 import com.mapbox.navigation.core.trip.session.RouteProgressObserver
 import com.mapbox.navigation.core.trip.session.VoiceInstructionsObserver
 import com.mapbox.navigation.examples.databinding.AnnotationViewBinding
+import com.mapbox.navigation.examples.databinding.AnnotationViewNumberStopBinding
 import com.mapbox.navigation.examples.databinding.FragmentHomeBinding
 import com.mapbox.navigation.ui.base.util.MapboxNavigationConsumer
 import com.mapbox.navigation.ui.maneuver.api.MapboxManeuverApi
@@ -646,7 +648,7 @@ class HomeFragment : Fragment(), PermissionsListener {
                 findRoute(point)
                 true
             }
-            Log.d("stops",list.toString())
+            //TODO paired with the other of async, previously the annotations were added here
             //addAnnotationToMap(list)
         }
 
@@ -897,7 +899,9 @@ class HomeFragment : Fragment(), PermissionsListener {
             val annotationApi = binding.mapView.annotations
             val pointAnnotationManager = annotationApi.createPointAnnotationManager()
             // Set options for the resulting symbol layer.
-            var listWithIcons = list.map { stop ->
+            val listWithIcons = list.map { stop ->
+                //Add the TextView over the Point with the total number of the bikes
+                addViewAnnotation(stop, it)
                 PointAnnotationOptions()
                     .withPoint(stop.location)
                     .withData(stop.toJson())
@@ -916,11 +920,29 @@ class HomeFragment : Fragment(), PermissionsListener {
                 //Open the bottom drawer
                 bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
 
-                //viewAnnotation?.visibility = View.VISIBLE
+                //Add the specific info of the stop to the bottom Drawer
                 setStopInfo(stopClicked)
 
                 true
             }
+        }
+    }
+
+    private fun addViewAnnotation(
+        stop: Stop,
+        it: Bitmap
+    ) {
+        val viewAnnotationManager = binding.mapView.viewAnnotationManager
+        val viewAnnotation = viewAnnotationManager.addViewAnnotation(
+            resId = com.mapbox.navigation.examples.R.layout.annotation_view_number_stop,
+            options = viewAnnotationOptions {
+                geometry(stop.location)
+                anchor(ViewAnnotationAnchor.BOTTOM)
+                offsetY(it.height)
+            }
+        )
+        AnnotationViewNumberStopBinding.bind(viewAnnotation).apply {
+            numberBikes.text = stop.getTotalBikeCount().toString()
         }
     }
 
@@ -944,7 +966,7 @@ class HomeFragment : Fragment(), PermissionsListener {
         return if (sourceDrawable is BitmapDrawable) {
             sourceDrawable.bitmap
         } else {
-// copying drawable object to not manipulate on the same reference
+            // copying drawable object to not manipulate on the same reference
             val constantState = sourceDrawable.constantState ?: return null
             val drawable = constantState.newDrawable().mutate()
             val bitmap: Bitmap = Bitmap.createBitmap(
@@ -962,42 +984,4 @@ class HomeFragment : Fragment(), PermissionsListener {
         visibility = if (visibility == View.VISIBLE) View.GONE else View.VISIBLE
     }
 
-    @SuppressLint("SetTextI18n")
-    private fun addViewAnnotations(listStops: List<PointAnnotation>) {
-        val point: Point = Point.fromLngLat(-4.731,41.653)
-        val viewAnnotationManager = binding.mapView.viewAnnotationManager
-        val viewAnnotation = viewAnnotationManager.addViewAnnotation(
-            resId = com.mapbox.navigation.examples.R.layout.annotation_view,
-            options = viewAnnotationOptions {
-                geometry(point)
-                associatedFeatureId(listStops[0].featureIdentifier)
-                anchor(ViewAnnotationAnchor.BOTTOM)
-                offsetY((listStops[0].iconImageBitmap?.height!!).toInt())
-            }
-        )
-        AnnotationViewBinding.bind(viewAnnotation).apply {
-            textNativeView.text = listStops[0].getData().toString()
-            closeNativeView.setOnClickListener {
-                viewAnnotationManager.removeViewAnnotation(viewAnnotation)
-            }
-            selectButton.setOnClickListener { b ->
-                val button = b as Button
-                val isSelected = button.text.toString().equals("SELECT", true)
-                val pxDelta = if (isSelected) 25 else -25
-                button.text = if (isSelected) "DESELECT" else "SELECT"
-                viewAnnotationManager.updateViewAnnotation(
-                    viewAnnotation,
-                    viewAnnotationOptions {
-                        selected(isSelected)
-                    }
-                )
-                (button.layoutParams as ViewGroup.MarginLayoutParams).apply {
-                    bottomMargin += pxDelta
-                    rightMargin += pxDelta
-                    leftMargin += pxDelta
-                }
-                button.requestLayout()
-            }
-        }
-    }
 }
