@@ -2,7 +2,9 @@ package es.uva.retobici.frontend
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.widget.Toast
 import com.google.android.material.snackbar.Snackbar
@@ -16,11 +18,15 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.mapbox.android.core.location.LocationEngineProvider
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.navigation.examples.databinding.ActivityMasterBinding
 import com.mapbox.navigation.examples.R
+import dagger.hilt.android.AndroidEntryPoint
+import es.uva.retobici.utilities.LocationListeningCallback
 
+@AndroidEntryPoint
 class MasterActivity : AppCompatActivity(), PermissionsListener {
 
     private lateinit var appBarConfiguration: AppBarConfiguration

@@ -12,6 +12,7 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.location.Location
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,17 +20,17 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.annotation.DrawableRes
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
+import com.mapbox.android.gestures.MoveGestureDetector
 import com.mapbox.api.directions.v5.models.Bearing
 import com.mapbox.api.directions.v5.models.DirectionsRoute
 import com.mapbox.api.directions.v5.models.RouteOptions
@@ -37,15 +38,19 @@ import com.mapbox.bindgen.Expected
 import com.mapbox.geojson.Point
 import com.mapbox.maps.*
 import com.mapbox.maps.extension.style.layers.properties.generated.IconAnchor
-import com.mapbox.maps.extension.style.style
-import com.mapbox.maps.plugin.LocationPuck2D
+import com.mapbox.maps.plugin.animation.MapAnimationOptions.Companion.mapAnimationOptions
 import com.mapbox.maps.plugin.animation.camera
+import com.mapbox.maps.plugin.animation.easeTo
 import com.mapbox.maps.plugin.annotation.annotations
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotation
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
+import com.mapbox.maps.plugin.gestures.OnMoveListener
 import com.mapbox.maps.plugin.gestures.gestures
+import com.mapbox.maps.plugin.locationcomponent.OnIndicatorBearingChangedListener
+import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.locationcomponent.location
+import com.mapbox.maps.viewannotation.ViewAnnotationManager
 import com.mapbox.maps.viewannotation.viewAnnotationOptions
 import com.mapbox.navigation.R
 import com.mapbox.navigation.base.TimeFormat
@@ -68,8 +73,8 @@ import com.mapbox.navigation.core.trip.session.LocationObserver
 import com.mapbox.navigation.core.trip.session.RouteProgressObserver
 import com.mapbox.navigation.core.trip.session.VoiceInstructionsObserver
 import com.mapbox.navigation.examples.databinding.AnnotationViewBinding
+import com.mapbox.navigation.examples.databinding.AnnotationViewNumberStopBinding
 import com.mapbox.navigation.examples.databinding.FragmentHomeBinding
-import com.mapbox.navigation.examples.databinding.MapboxActivityTurnByTurnExperienceBinding
 import com.mapbox.navigation.ui.base.util.MapboxNavigationConsumer
 import com.mapbox.navigation.ui.maneuver.api.MapboxManeuverApi
 import com.mapbox.navigation.ui.maneuver.view.MapboxManeuverView
@@ -95,17 +100,20 @@ import com.mapbox.navigation.ui.voice.model.SpeechAnnouncement
 import com.mapbox.navigation.ui.voice.model.SpeechError
 import com.mapbox.navigation.ui.voice.model.SpeechValue
 import com.mapbox.navigation.ui.voice.model.SpeechVolume
+import dagger.hilt.android.AndroidEntryPoint
+import es.uva.retobici.frontend.domain.model.Stop
 //import es.uva.retobici.frontend.turnbyturn.MAPBOX_ACCESS_TOKEN_PLACEHOLDER
-import es.uva.retobici.frontend.turnbyturn.TurnByTurnExperienceActivity
 import org.json.JSONObject
 import java.util.*
 
+@AndroidEntryPoint
 class HomeFragment : Fragment(), PermissionsListener {
 
     private val BUTTON_ANIMATION_DURATION = 1500L
 
     private var _binding: FragmentHomeBinding? = null
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<LinearLayout>
+    private var list:List<Stop> = listOf()
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -478,9 +486,19 @@ class HomeFragment : Fragment(), PermissionsListener {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val homeViewModel = ViewModelProvider(this)[HomeViewModel::class.java]
+
+        val homeViewModel : HomeViewModel by viewModels()
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
+        //homeViewModel.onCreate()
+        //var list = listOf<PointAnnotationOptions>()
+        homeViewModel.stops.observe(this.viewLifecycleOwner, Observer { stops ->
+            //Do some stuff with the stops
+
+            //TODO check the await or something that checks if the maps have been created
+            addAnnotationToMap(stops)
+        })
         bottomSheetBehavior = BottomSheetBehavior.from(binding.persistentBottomSheet.persistentBottomSheet)
+        bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
         bottomSheetBehavior.addBottomSheetCallback(object :
             BottomSheetBehavior.BottomSheetCallback() {
 
@@ -505,6 +523,7 @@ class HomeFragment : Fragment(), PermissionsListener {
         mapboxMap = binding.mapView.getMapboxMap()
 
         // initialize the location puck
+        /**
         binding.mapView.location.apply {
             this.locationPuck = LocationPuck2D(
                 bearingImage = ContextCompat.getDrawable(
@@ -515,6 +534,7 @@ class HomeFragment : Fragment(), PermissionsListener {
             setLocationProvider(navigationLocationProvider)
             enabled = true
         }
+        */
 
         // initialize Mapbox Navigation
         mapboxNavigation = if (MapboxNavigationProvider.isCreated()) {
@@ -619,15 +639,28 @@ class HomeFragment : Fragment(), PermissionsListener {
         mapboxMap.loadStyleUri(
             Style.MAPBOX_STREETS
         ) {
+            //Init the location pluck on the users location
+            initLocationComponent()
+            //Init the gesture Listener for the map used when you move the map rotate or zoom
+            setupGesturesListener()
             // add long click listener that search for a route to the clicked destination
             binding.mapView.gestures.addOnMapLongClickListener { point ->
                 findRoute(point)
                 true
             }
-
-            addAnnotationToMap()
-            //addViewAnnotation(Point.fromLngLat(-4.731,41.653))
+            //TODO paired with the other of async, previously the annotations were added here
+            //addAnnotationToMap(list)
         }
+
+        //Initialization of button actions
+        binding.recenterLocation.setOnClickListener {
+            //TODO recenter map on user location
+            Toast.makeText(this.requireContext(), "recenter", Toast.LENGTH_SHORT).show()
+            val locationComponentPlugin = binding.mapView.location
+            locationComponentPlugin.addOnIndicatorPositionChangedListener(onIndicatorPositionChangedListener)
+            setupGesturesListener()
+        }
+
         // initialize view interactions
         binding.stop.setOnClickListener {
             clearRouteAndStopNavigation()
@@ -652,6 +685,56 @@ class HomeFragment : Fragment(), PermissionsListener {
         // and later when a route is set also receiving route progress updates
         mapboxNavigation.startTripSession()
         return binding.root
+    }
+
+    private fun setupGesturesListener() {
+        binding.mapView.gestures.addOnMoveListener(onMoveListener)
+    }
+
+    private fun initLocationComponent() {
+        val locationComponentPlugin = binding.mapView.location
+        locationComponentPlugin.updateSettings {
+            this.enabled = true
+            this.pulsingEnabled = true
+            this.pulsingColor = R.color.primary_material_dark
+        }
+        /** This two listeners are used to track the user location */
+        locationComponentPlugin.addOnIndicatorPositionChangedListener(onIndicatorPositionChangedListener)
+        //locationComponentPlugin.addOnIndicatorBearingChangedListener(onIndicatorBearingChangedListener)
+    }
+
+    /**
+     * Listener for map movement
+     */
+    private val onMoveListener = object : OnMoveListener {
+        override fun onMoveBegin(detector: MoveGestureDetector) {
+            onCameraTrackingDismissed()
+        }
+
+        override fun onMove(detector: MoveGestureDetector): Boolean {
+            return false
+        }
+
+        override fun onMoveEnd(detector: MoveGestureDetector) {}
+    }
+
+    /**
+     * Remove the listeners because the map have been moved, so no tracking
+     */
+    private fun onCameraTrackingDismissed() {
+        Toast.makeText(this.requireContext(), "onCameraTrackingDismissed", Toast.LENGTH_SHORT).show()
+        binding.mapView.location.removeOnIndicatorPositionChangedListener(onIndicatorPositionChangedListener)
+        //binding.mapView.location.removeOnIndicatorBearingChangedListener(onIndicatorBearingChangedListener)
+        binding.mapView.gestures.removeOnMoveListener(onMoveListener)
+    }
+
+    private val onIndicatorBearingChangedListener = OnIndicatorBearingChangedListener {
+        binding.mapView.getMapboxMap().setCamera(CameraOptions.Builder().bearing(it).build())
+    }
+
+    private val onIndicatorPositionChangedListener = OnIndicatorPositionChangedListener {
+        mapboxMap.setCamera(CameraOptions.Builder().center(it).build())
+        //binding.mapView.gestures.focalPoint = binding.mapView.getMapboxMap().pixelForCoordinate(it)
     }
 
     override fun onDestroyView() {
@@ -694,6 +777,11 @@ class HomeFragment : Fragment(), PermissionsListener {
         mapboxNavigation.unregisterLocationObserver(locationObserver)
         mapboxNavigation.unregisterVoiceInstructionsObserver(voiceInstructionsObserver)
         mapboxNavigation.unregisterRouteProgressObserver(replayProgressObserver)
+
+        /** Commented because now these listeners are not attached on the start @see initLocationComponent*/
+        binding.mapView.location.removeOnIndicatorBearingChangedListener(onIndicatorBearingChangedListener)
+        binding.mapView.location.removeOnIndicatorPositionChangedListener(onIndicatorPositionChangedListener)
+        binding.mapView.gestures.removeOnMoveListener(onMoveListener)
     }
 
     override fun onDestroy() {
@@ -802,66 +890,70 @@ class HomeFragment : Fragment(), PermissionsListener {
         }
     }
 
-    private fun addAnnotationToMap() {
-// Create an instance of the Annotation API and get the PointAnnotationManager.
+    private fun addAnnotationToMap(list: List<Stop>) {
         bitmapFromDrawableRes(
             this@HomeFragment.requireContext(),
             com.mapbox.navigation.examples.R.drawable.red_marker
-        )?.let {
+        )?.let { it ->
+            // Create an instance of the Annotation API and get the PointAnnotationManager.
             val annotationApi = binding.mapView.annotations
             val pointAnnotationManager = annotationApi.createPointAnnotationManager()
-            val json = """
-                {
-                    title: "Plaza Zorrilla",
-                	stop: "jorge",
-                    lng: -4.731,
-                    lat: 41.635
-                }
-            """.trimIndent()
-            val parsed = JsonParser.parseString(json)
             // Set options for the resulting symbol layer.
-            val immutableList = listOf(
-                Point.fromLngLat(-4.731,41.653),
-                Point.fromLngLat(-4.726,41.652),
-                Point.fromLngLat(-4.729,41.647),
-                Point.fromLngLat(-4.725,41.648),
-            )
-            val list = mutableListOf<PointAnnotationOptions>()
-            for (point in immutableList){
-                list.add(
-                    PointAnnotationOptions()
-                        .withData(parsed)
-                        .withPoint(point)
-                        .withIconImage(it)
-                        .withIconAnchor(IconAnchor.BOTTOM)
-                )
+            val listWithIcons = list.map { stop ->
+                //Add the TextView over the Point with the total number of the bikes
+                addViewAnnotation(stop, it)
+                PointAnnotationOptions()
+                    .withPoint(stop.location)
+                    .withData(stop.toJson())
+                    .withIconImage(it)
+                    .withIconAnchor(IconAnchor.BOTTOM)
             }
-            val listPoints: List<PointAnnotation> = pointAnnotationManager.create(list)
-            //addViewAnnotations(listPoints)
-            pointAnnotationManager.addClickListener{
-                    stopClicked ->
-                val viewAnotationManager = binding.mapView.viewAnnotationManager
-                val viewAnnotation = viewAnotationManager.getViewAnnotationByFeatureId(stopClicked.featureIdentifier)
+            pointAnnotationManager.create(listWithIcons)
+            pointAnnotationManager.addClickListener{ stopClicked ->
+                val cameraPosition = CameraOptions.Builder()
+                    .zoom(14.5)
+                    .center(stopClicked.geometry)
+                    .build()
+                // Move to the annotation in the map
+                mapboxMap.easeTo(cameraPosition, mapAnimationOptions { duration(2000) })
 
-                if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED)
-                    bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
-                else
-                    bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+                //Open the bottom drawer
+                bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
 
-                viewAnnotation?.visibility = View.VISIBLE
+                //Add the specific info of the stop to the bottom Drawer
                 setStopInfo(stopClicked)
-                println("------------------------")
-                println(stopClicked.getData())
-                println("------------------------")
 
                 true
             }
         }
     }
 
+    private fun addViewAnnotation(
+        stop: Stop,
+        it: Bitmap
+    ) {
+        val viewAnnotationManager = binding.mapView.viewAnnotationManager
+        val viewAnnotation = viewAnnotationManager.addViewAnnotation(
+            resId = com.mapbox.navigation.examples.R.layout.annotation_view_number_stop,
+            options = viewAnnotationOptions {
+                geometry(stop.location)
+                anchor(ViewAnnotationAnchor.BOTTOM)
+                offsetY(it.height)
+            }
+        )
+        AnnotationViewNumberStopBinding.bind(viewAnnotation).apply {
+            numberBikes.text = stop.getTotalBikeCount().toString()
+        }
+    }
+
     private fun setStopInfo(stopClicked: PointAnnotation) {
         val data = JSONObject(stopClicked.getData().toString())
-        binding.persistentBottomSheet.stopTitle.text = data.get("title").toString()
+        binding.persistentBottomSheet.stopTitle.text = data.get("address").toString()
+        //TODO calculate the distance from the user to the stop
+        //binding.persistentBottomSheet.stopDistance = data.get("title").toString()
+        binding.persistentBottomSheet.countPedalBike.text = data.get("count_bike_pedal").toString()
+        binding.persistentBottomSheet.countElectricBike.text = data.get("count_bike_electric").toString()
+        binding.persistentBottomSheet.countBikeStop.text = data.get("count_bike_stop").toString()
     }
 
     private fun bitmapFromDrawableRes(context: Context, @DrawableRes resourceId: Int) =
@@ -874,7 +966,7 @@ class HomeFragment : Fragment(), PermissionsListener {
         return if (sourceDrawable is BitmapDrawable) {
             sourceDrawable.bitmap
         } else {
-// copying drawable object to not manipulate on the same reference
+            // copying drawable object to not manipulate on the same reference
             val constantState = sourceDrawable.constantState ?: return null
             val drawable = constantState.newDrawable().mutate()
             val bitmap: Bitmap = Bitmap.createBitmap(
@@ -892,42 +984,4 @@ class HomeFragment : Fragment(), PermissionsListener {
         visibility = if (visibility == View.VISIBLE) View.GONE else View.VISIBLE
     }
 
-    @SuppressLint("SetTextI18n")
-    private fun addViewAnnotations(listStops: List<PointAnnotation>) {
-        val point: Point = Point.fromLngLat(-4.731,41.653)
-        val viewAnnotationManager = binding.mapView.viewAnnotationManager
-        val viewAnnotation = viewAnnotationManager.addViewAnnotation(
-            resId = com.mapbox.navigation.examples.R.layout.annotation_view,
-            options = viewAnnotationOptions {
-                geometry(point)
-                associatedFeatureId(listStops[0].featureIdentifier)
-                anchor(ViewAnnotationAnchor.BOTTOM)
-                offsetY((listStops[0].iconImageBitmap?.height!!).toInt())
-            }
-        )
-        AnnotationViewBinding.bind(viewAnnotation).apply {
-            textNativeView.text = listStops[0].getData().toString()
-            closeNativeView.setOnClickListener {
-                viewAnnotationManager.removeViewAnnotation(viewAnnotation)
-            }
-            selectButton.setOnClickListener { b ->
-                val button = b as Button
-                val isSelected = button.text.toString().equals("SELECT", true)
-                val pxDelta = if (isSelected) 25 else -25
-                button.text = if (isSelected) "DESELECT" else "SELECT"
-                viewAnnotationManager.updateViewAnnotation(
-                    viewAnnotation,
-                    viewAnnotationOptions {
-                        selected(isSelected)
-                    }
-                )
-                (button.layoutParams as ViewGroup.MarginLayoutParams).apply {
-                    bottomMargin += pxDelta
-                    rightMargin += pxDelta
-                    leftMargin += pxDelta
-                }
-                button.requestLayout()
-            }
-        }
-    }
 }
