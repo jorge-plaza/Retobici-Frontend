@@ -101,6 +101,8 @@ import com.mapbox.navigation.ui.voice.model.SpeechError
 import com.mapbox.navigation.ui.voice.model.SpeechValue
 import com.mapbox.navigation.ui.voice.model.SpeechVolume
 import dagger.hilt.android.AndroidEntryPoint
+import es.uva.retobici.frontend.domain.model.Bike
+import es.uva.retobici.frontend.domain.model.PedalBike
 import es.uva.retobici.frontend.domain.model.Stop
 //import es.uva.retobici.frontend.turnbyturn.MAPBOX_ACCESS_TOKEN_PLACEHOLDER
 import org.json.JSONObject

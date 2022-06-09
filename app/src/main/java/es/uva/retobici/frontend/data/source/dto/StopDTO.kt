@@ -13,16 +13,7 @@ data class StopDTO(
     @SerializedName("address") val address: String,
     @SerializedName("totalSpaces") val totalSpaces: Int,
     @SerializedName("bikes") val bikes: List<BikeDTO>
-){
-    data class BikeDTO(
-        @SerializedName("id") val id: Int,
-        @SerializedName("battery") val battery: Float?,
-    ){
-        fun toBikeModel(): Bike{
-            return if (battery!=null) ElectricBike(id,battery) else PedalBike(id)
-        }
-    }
-}
+)
 fun StopDTO.toStopModel(): Stop{
     return Stop(
         id = this.id,

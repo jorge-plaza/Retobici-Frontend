@@ -15,6 +15,7 @@ class StopRemoteDataSource @Inject constructor(
     private val stopProvider: StopProvider
 ): StopRepository{
 
+    //TODO check if the Flows are needed or with the CRUD operations are enough
     override suspend fun getAllStops(): List<Stop> {
         return withContext(Dispatchers.IO){
             val response = api.getAllStops()

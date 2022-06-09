@@ -4,6 +4,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import es.uva.retobici.frontend.data.source.api.BikeAPI
 import es.uva.retobici.frontend.data.source.api.StopAPI
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -30,5 +31,14 @@ class NetworkModule {
     @Provides
     fun providesStopApi(retrofit: Retrofit): StopAPI {
         return retrofit.create(StopAPI::class.java)
+    }
+
+    /**
+     * This is provided because you can not Inject an interface
+     */
+    @Singleton
+    @Provides
+    fun providesBikeApi(retrofit: Retrofit): BikeAPI {
+        return retrofit.create(BikeAPI::class.java)
     }
 }
