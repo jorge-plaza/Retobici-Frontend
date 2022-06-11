@@ -1,4 +1,4 @@
-package es.uva.retobici.frontend.turnbyturn
+package es.uva.retobici.frontend.ui.home
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -13,19 +13,25 @@ import android.graphics.drawable.Drawable
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.annotation.DrawableRes
-import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
+import androidx.navigation.findNavController
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.gson.JsonParser
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
+import com.mapbox.android.gestures.MoveGestureDetector
 import com.mapbox.api.directions.v5.models.Bearing
 import com.mapbox.api.directions.v5.models.DirectionsRoute
 import com.mapbox.api.directions.v5.models.RouteOptions
@@ -33,17 +39,24 @@ import com.mapbox.bindgen.Expected
 import com.mapbox.geojson.Point
 import com.mapbox.maps.*
 import com.mapbox.maps.extension.style.layers.properties.generated.IconAnchor
-import com.mapbox.maps.plugin.LocationPuck2D
+import com.mapbox.maps.plugin.animation.MapAnimationOptions.Companion.mapAnimationOptions
 import com.mapbox.maps.plugin.animation.camera
+import com.mapbox.maps.plugin.animation.easeTo
 import com.mapbox.maps.plugin.annotation.annotations
-import com.mapbox.maps.plugin.annotation.generated.*
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotation
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
+import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
+import com.mapbox.maps.plugin.gestures.OnMoveListener
 import com.mapbox.maps.plugin.gestures.gestures
+import com.mapbox.maps.plugin.locationcomponent.OnIndicatorBearingChangedListener
+import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.locationcomponent.location
+import com.mapbox.maps.viewannotation.ViewAnnotationManager
 import com.mapbox.maps.viewannotation.viewAnnotationOptions
+import com.mapbox.navigation.R
 import com.mapbox.navigation.base.TimeFormat
 import com.mapbox.navigation.base.extensions.applyDefaultNavigationOptions
 import com.mapbox.navigation.base.extensions.applyLanguageAndVoiceUnitOptions
-import com.mapbox.navigation.base.options.HistoryRecorderOptions
 import com.mapbox.navigation.base.options.NavigationOptions
 import com.mapbox.navigation.base.route.RouterCallback
 import com.mapbox.navigation.base.route.RouterFailure
@@ -52,6 +65,7 @@ import com.mapbox.navigation.core.MapboxNavigation
 import com.mapbox.navigation.core.MapboxNavigationProvider
 import com.mapbox.navigation.core.directions.session.RoutesObserver
 import com.mapbox.navigation.core.formatter.MapboxDistanceFormatter
+import com.mapbox.navigation.core.history.MapboxHistoryRecorder
 import com.mapbox.navigation.core.replay.MapboxReplayer
 import com.mapbox.navigation.core.replay.ReplayLocationEngine
 import com.mapbox.navigation.core.replay.route.ReplayProgressObserver
@@ -60,10 +74,9 @@ import com.mapbox.navigation.core.trip.session.LocationMatcherResult
 import com.mapbox.navigation.core.trip.session.LocationObserver
 import com.mapbox.navigation.core.trip.session.RouteProgressObserver
 import com.mapbox.navigation.core.trip.session.VoiceInstructionsObserver
-import com.mapbox.navigation.examples.R
-import com.mapbox.navigation.examples.databinding.ActivityMainBinding
 import com.mapbox.navigation.examples.databinding.AnnotationViewBinding
-import com.mapbox.navigation.examples.databinding.MapboxActivityTurnByTurnExperienceBinding
+import com.mapbox.navigation.examples.databinding.AnnotationViewNumberStopBinding
+import com.mapbox.navigation.examples.databinding.FragmentHomeBinding
 import com.mapbox.navigation.ui.base.util.MapboxNavigationConsumer
 import com.mapbox.navigation.ui.maneuver.api.MapboxManeuverApi
 import com.mapbox.navigation.ui.maneuver.view.MapboxManeuverView
@@ -81,11 +94,7 @@ import com.mapbox.navigation.ui.maps.route.line.api.MapboxRouteLineView
 import com.mapbox.navigation.ui.maps.route.line.model.MapboxRouteLineOptions
 import com.mapbox.navigation.ui.maps.route.line.model.RouteLine
 import com.mapbox.navigation.ui.tripprogress.api.MapboxTripProgressApi
-import com.mapbox.navigation.ui.tripprogress.model.DistanceRemainingFormatter
-import com.mapbox.navigation.ui.tripprogress.model.EstimatedTimeToArrivalFormatter
-import com.mapbox.navigation.ui.tripprogress.model.PercentDistanceTraveledFormatter
-import com.mapbox.navigation.ui.tripprogress.model.TimeRemainingFormatter
-import com.mapbox.navigation.ui.tripprogress.model.TripProgressUpdateFormatter
+import com.mapbox.navigation.ui.tripprogress.model.*
 import com.mapbox.navigation.ui.tripprogress.view.MapboxTripProgressView
 import com.mapbox.navigation.ui.voice.api.MapboxSpeechApi
 import com.mapbox.navigation.ui.voice.api.MapboxVoiceInstructionsPlayer
@@ -93,35 +102,26 @@ import com.mapbox.navigation.ui.voice.model.SpeechAnnouncement
 import com.mapbox.navigation.ui.voice.model.SpeechError
 import com.mapbox.navigation.ui.voice.model.SpeechValue
 import com.mapbox.navigation.ui.voice.model.SpeechVolume
-import com.mapbox.navigation.utils.internal.toPoint
-import java.util.Locale
+import dagger.hilt.android.AndroidEntryPoint
+import es.uva.retobici.frontend.domain.model.Bike
+import es.uva.retobici.frontend.domain.model.PedalBike
+import es.uva.retobici.frontend.domain.model.Stop
+//import es.uva.retobici.frontend.turnbyturn.MAPBOX_ACCESS_TOKEN_PLACEHOLDER
+import org.json.JSONObject
+import java.util.*
 
-/**
- * This example demonstrates a basic turn-by-turn navigation experience by putting together some UI elements to showcase
- * navigation camera transitions, guidance instructions banners and playback, and progress along the route.
- *
- * Before running the example make sure you have put your access_token in the correct place
- * inside [app/src/main/res/values/mapbox_access_token.xml]. If not present then add this file
- * at the location mentioned above and add the following content to it
- *
- * <?xml version="1.0" encoding="utf-8"?>
- * <resources xmlns:tools="http://schemas.android.com/tools">
- *     <string name="mapbox_access_token"><PUT_YOUR_ACCESS_TOKEN_HERE></string>
- * </resources>
- *
- * The example assumes that you have granted location permissions and does not enforce it. However,
- * the permission is essential for proper functioning of this example. The example also uses replay
- * location engine to facilitate navigation without actually physically moving.
- *
- * How to use this example:
- * - You can long-click the map to select a destination.
- * - The guidance will start to the selected destination while simulating location updates.
- * You can disable simulation by commenting out the [replayLocationEngine] setter in [NavigationOptions].
- * Then, the device's real location will be used.
- * - At any point in time you can finish guidance or select a new destination.
- * - You can use buttons to mute/unmute voice instructions, recenter the camera, or show the route overview.
- */
-class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
+@AndroidEntryPoint
+class HomeFragmentCopy : Fragment(), PermissionsListener {
+
+    private val BUTTON_ANIMATION_DURATION = 1500L
+
+    private var _binding: FragmentHomeBinding? = null
+    private lateinit var bottomSheetBehavior: BottomSheetBehavior<LinearLayout>
+    private var list:List<Stop> = listOf()
+
+    // This property is only valid between onCreateView and
+    // onDestroyView.
+    private val binding get() = _binding!!
 
     private companion object {
         private const val BUTTON_ANIMATION_DURATION = 1500L
@@ -141,11 +141,6 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
      * Debug observer that makes sure the replayer has always an up-to-date information to generate mock updates.
      */
     private val replayProgressObserver = ReplayProgressObserver(mapboxReplayer)
-
-    /**
-     * Bindings to the example layout.
-     */
-    private lateinit var binding: MapboxActivityTurnByTurnExperienceBinding
 
     /**
      * Mapbox Maps entry point obtained from the [MapView].
@@ -327,7 +322,6 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
 
         override fun onNewLocationMatcherResult(locationMatcherResult: LocationMatcherResult) {
             val enhancedLocation = locationMatcherResult.enhancedLocation
-            Log.d("testlocation", enhancedLocation.toPoint().toString())
             // update location puck's position on the map
             navigationLocationProvider.changePosition(
                 location = enhancedLocation,
@@ -371,7 +365,7 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
         maneuvers.fold(
             { error ->
                 Toast.makeText(
-                    this@TurnByTurnExperienceActivity,
+                    this@HomeFragmentCopy.requireContext(),
                     error.errorMessage,
                     Toast.LENGTH_SHORT
                 ).show()
@@ -430,12 +424,11 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
             viewportDataSource.evaluate()
         }
     }
-
     private val permissionsManager = PermissionsManager(this)
 
     override fun onExplanationNeeded(permissionsToExplain: MutableList<String>?) {
         Toast.makeText(
-            this,
+            this.requireContext(),
             "This app needs location and storage permissions in order to show its functionality.",
             Toast.LENGTH_LONG
         ).show()
@@ -446,7 +439,7 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
             requestStoragePermission()
         } else {
             Toast.makeText(
-                this,
+                this.requireContext(),
                 "You didn't grant the permissions required to use the app",
                 Toast.LENGTH_LONG
             ).show()
@@ -466,98 +459,86 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
         val permission = Manifest.permission.WRITE_EXTERNAL_STORAGE
         val permissionsNeeded: MutableList<String> = ArrayList()
         if (
-            ContextCompat.checkSelfPermission(this, permission) !=
+            ContextCompat.checkSelfPermission(this.requireContext(), permission) !=
             PackageManager.PERMISSION_GRANTED
         ) {
             permissionsNeeded.add(permission)
             ActivityCompat.requestPermissions(
-                this,
+                this.requireActivity(),
                 permissionsNeeded.toTypedArray(),
                 10
             )
         }
     }
 
-    private fun isMapboxTokenProvided() =
-        getString(R.string.mapbox_access_token) != MAPBOX_ACCESS_TOKEN_PLACEHOLDER
+    //private fun isMapboxTokenProvided() = getString(com.mapbox.navigation.examples.R.string.mapbox_access_token) != MAPBOX_ACCESS_TOKEN_PLACEHOLDER
 
+    /**
     private fun showNoTokenErrorDialog() {
-        AlertDialog.Builder(this)
-            .setTitle(getString(R.string.noTokenDialogTitle))
-            .setMessage(getString(R.string.noTokenDialogBody))
+        AlertDialog.Builder(this.requireContext())
+            .setTitle(getString(com.mapbox.navigation.examples.R.string.noTokenDialogTitle))
+            .setMessage(getString(com.mapbox.navigation.examples.R.string.noTokenDialogBody))
             .setCancelable(false)
             .setPositiveButton("Ok") { _, _ ->
                 finish()
             }
             .show()
-    }
+    }*/
 
-    @SuppressLint("MissingPermission")
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
 
-        binding = MapboxActivityTurnByTurnExperienceBinding.inflate(layoutInflater)
-
-        binding.topAppBar.setNavigationOnClickListener {
-            binding.drawerLayout.open()
+        val homeViewModel : HomeViewModel by viewModels()
+        _binding = FragmentHomeBinding.inflate(inflater, container, false)
+        //homeViewModel.onCreate()
+        //var list = listOf<PointAnnotationOptions>()
+        homeViewModel.stops.observe(this.viewLifecycleOwner) { stops ->
+            //TODO check the await or something that checks if the maps have been created
+            addAnnotationToMap(stops)
         }
 
-        binding.topAppBar.setOnMenuItemClickListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.search -> {
-                    // Handle search icon press
-                    true
-                }
-                R.id.more -> {
-                    // Handle more item (inside overflow menu) press
-                    true
-                }
-                else -> false
+        homeViewModel.bike.observe(this.viewLifecycleOwner) { bike ->
+            setRouteWithBike(bike)
+        }
+        bottomSheetBehavior = BottomSheetBehavior.from(binding.persistentBottomSheet.persistentBottomSheet)
+        bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+        bottomSheetBehavior.addBottomSheetCallback(object :
+            BottomSheetBehavior.BottomSheetCallback() {
+
+            override fun onSlide(bottomSheet: View, slideOffset: Float) {
+                // handle onSlide
             }
-        }
 
-        binding.navigationView.setNavigationItemSelectedListener { menuItem ->
-            // Handle menu item selected
-            when (menuItem.itemId) {
-                R.id.drawer_item_rutas -> {
-                    // Handle search icon press
-                    menuItem.isChecked = true
-                    binding.drawerLayout.close()
-                    true
-                }
-                else -> false
+            override fun onStateChanged(bottomSheet: View, newState: Int) {
+
             }
+        })
+
+        binding.qrScan.setOnClickListener { view ->
+            //TODO fix packages
+            view.findNavController().navigate(com.mapbox.navigation.examples.R.id.action_nav_home_to_qr_scan)
+            //Load QR scan Fragment
         }
 
-        setContentView(binding.root)
+        binding.persistentBottomSheet.pedalBikeLayout.setOnClickListener {
+            //Reserve this type of bike
+        }
+
+
         mapboxMap = binding.mapView.getMapboxMap()
-
-        // initialize the location puck
-        binding.mapView.location.apply {
-            this.locationPuck = LocationPuck2D(
-                bearingImage = ContextCompat.getDrawable(
-                    this@TurnByTurnExperienceActivity,
-                    com.mapbox.navigation.R.drawable.mapbox_navigation_puck_icon
-                )
-            )
-            setLocationProvider(navigationLocationProvider)
-            enabled = true
-        }
 
         // initialize Mapbox Navigation
         mapboxNavigation = if (MapboxNavigationProvider.isCreated()) {
             MapboxNavigationProvider.retrieve()
         } else {
             MapboxNavigationProvider.create(
-                NavigationOptions.Builder(this.applicationContext)
-                    .accessToken(getString(R.string.mapbox_access_token))
+                NavigationOptions.Builder(this.requireContext())
+                    .accessToken(getString(com.mapbox.navigation.examples.R.string.mapbox_access_token))
                     // comment out the location engine setting block to disable simulation
-                    .locationEngine(replayLocationEngine)
-                    .historyRecorderOptions(
-                        HistoryRecorderOptions.Builder()
-                            .fileDirectory("testDirectory")
-                            .build()
-                    )
+                    //.locationEngine(replayLocationEngine)
                     .build()
             )
         }
@@ -600,84 +581,100 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
         val distanceFormatterOptions = mapboxNavigation.navigationOptions.distanceFormatterOptions
 
         // initialize maneuver api that feeds the data to the top banner maneuver view
+        /*
         maneuverApi = MapboxManeuverApi(
             MapboxDistanceFormatter(distanceFormatterOptions)
         )
+        */
 
         // initialize bottom progress view
+        /*
         tripProgressApi = MapboxTripProgressApi(
-            TripProgressUpdateFormatter.Builder(this)
+            TripProgressUpdateFormatter.Builder(this.requireContext())
                 .distanceRemainingFormatter(
                     DistanceRemainingFormatter(distanceFormatterOptions)
                 )
                 .timeRemainingFormatter(
-                    TimeRemainingFormatter(this)
+                    TimeRemainingFormatter(this.requireContext())
                 )
                 .percentRouteTraveledFormatter(
                     PercentDistanceTraveledFormatter()
                 )
                 .estimatedTimeToArrivalFormatter(
-                    EstimatedTimeToArrivalFormatter(this, TimeFormat.NONE_SPECIFIED)
+                    EstimatedTimeToArrivalFormatter(this.requireContext(), TimeFormat.NONE_SPECIFIED)
                 )
                 .build()
         )
+        */
 
+        /*
         // initialize voice instructions api and the voice instruction player
         speechApi = MapboxSpeechApi(
-            this,
-            getString(R.string.mapbox_access_token),
+            this.requireContext(),
+            getString(com.mapbox.navigation.examples.R.string.mapbox_access_token),
             Locale.US.language
         )
         voiceInstructionsPlayer = MapboxVoiceInstructionsPlayer(
-            this,
-            getString(R.string.mapbox_access_token),
+            this.requireContext(),
+            getString(com.mapbox.navigation.examples.R.string.mapbox_access_token),
             Locale.US.language
         )
+        */
 
+        /*
         // initialize route line, the withRouteLineBelowLayerId is specified to place
         // the route line below road labels layer on the map
         // the value of this option will depend on the style that you are using
         // and under which layer the route line should be placed on the map layers stack
-        val mapboxRouteLineOptions = MapboxRouteLineOptions.Builder(this)
+        val mapboxRouteLineOptions = MapboxRouteLineOptions.Builder(this.requireContext())
             .withRouteLineBelowLayerId("road-label")
             .build()
         routeLineApi = MapboxRouteLineApi(mapboxRouteLineOptions)
         routeLineView = MapboxRouteLineView(mapboxRouteLineOptions)
 
         // initialize maneuver arrow view to draw arrows on the map
-        val routeArrowOptions = RouteArrowOptions.Builder(this).build()
+        val routeArrowOptions = RouteArrowOptions.Builder(this.requireContext()).build()
         routeArrowView = MapboxRouteArrowView(routeArrowOptions)
+
+         */
 
         // load map style
         mapboxMap.loadStyleUri(
             Style.MAPBOX_STREETS
         ) {
+            //Init the location pluck on the users location
+            initLocationComponent()
+            //Init the gesture Listener for the map used when you move the map rotate or zoom
+            setupGesturesListener()
             // add long click listener that search for a route to the clicked destination
             binding.mapView.gestures.addOnMapLongClickListener { point ->
                 findRoute(point)
                 true
             }
-
-            binding.mapView.gestures.addOnMapClickListener {
-                point ->
-                findRoute(point)
-                true
-            }
-
-            addAnnotationToMap()
-            //addViewAnnotation(Point.fromLngLat(-4.731,41.653))
+            //TODO paired with the other of async, previously the annotations were added here
+            //addAnnotationToMap(list)
         }
+
+        //Initialization of button actions
+        binding.recenterLocation.setOnClickListener {
+            //TODO recenter map on user location
+            Toast.makeText(this.requireContext(), "recenter", Toast.LENGTH_SHORT).show()
+            val locationComponentPlugin = binding.mapView.location
+            locationComponentPlugin.addOnIndicatorPositionChangedListener(onIndicatorPositionChangedListener)
+            setupGesturesListener()
+        }
+
         // initialize view interactions
         binding.stop.setOnClickListener {
             clearRouteAndStopNavigation()
         }
         binding.recenter.setOnClickListener {
             navigationCamera.requestNavigationCameraToFollowing()
-            binding.routeOverview.showTextAndExtend(BUTTON_ANIMATION_DURATION)
+            binding.routeOverview.showTextAndExtend(this.BUTTON_ANIMATION_DURATION)
         }
         binding.routeOverview.setOnClickListener {
             navigationCamera.requestNavigationCameraToOverview()
-            binding.recenter.showTextAndExtend(BUTTON_ANIMATION_DURATION)
+            binding.recenter.showTextAndExtend(this.BUTTON_ANIMATION_DURATION)
         }
         binding.soundButton.setOnClickListener {
             // mute/unmute voice instructions
@@ -690,6 +687,66 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
         // start the trip session to being receiving location updates in free drive
         // and later when a route is set also receiving route progress updates
         mapboxNavigation.startTripSession()
+        return binding.root
+    }
+
+    private fun setRouteWithBike(bike: Bike?) {
+        TODO("Not yet implemented")
+    }
+
+    private fun setupGesturesListener() {
+        binding.mapView.gestures.addOnMoveListener(onMoveListener)
+    }
+
+    private fun initLocationComponent() {
+        val locationComponentPlugin = binding.mapView.location
+        locationComponentPlugin.updateSettings {
+            this.enabled = true
+            this.pulsingEnabled = true
+            this.pulsingColor = R.color.primary_material_dark
+        }
+        /** This two listeners are used to track the user location */
+        locationComponentPlugin.addOnIndicatorPositionChangedListener(onIndicatorPositionChangedListener)
+        //locationComponentPlugin.addOnIndicatorBearingChangedListener(onIndicatorBearingChangedListener)
+    }
+
+    /**
+     * Listener for map movement
+     */
+    private val onMoveListener = object : OnMoveListener {
+        override fun onMoveBegin(detector: MoveGestureDetector) {
+            onCameraTrackingDismissed()
+        }
+
+        override fun onMove(detector: MoveGestureDetector): Boolean {
+            return false
+        }
+
+        override fun onMoveEnd(detector: MoveGestureDetector) {}
+    }
+
+    /**
+     * Remove the listeners because the map have been moved, so no tracking
+     */
+    private fun onCameraTrackingDismissed() {
+        Toast.makeText(this.requireContext(), "onCameraTrackingDismissed", Toast.LENGTH_SHORT).show()
+        binding.mapView.location.removeOnIndicatorPositionChangedListener(onIndicatorPositionChangedListener)
+        //binding.mapView.location.removeOnIndicatorBearingChangedListener(onIndicatorBearingChangedListener)
+        binding.mapView.gestures.removeOnMoveListener(onMoveListener)
+    }
+
+    private val onIndicatorBearingChangedListener = OnIndicatorBearingChangedListener {
+        binding.mapView.getMapboxMap().setCamera(CameraOptions.Builder().bearing(it).build())
+    }
+
+    private val onIndicatorPositionChangedListener = OnIndicatorPositionChangedListener {
+        mapboxMap.setCamera(CameraOptions.Builder().center(it).build())
+        //binding.mapView.gestures.focalPoint = binding.mapView.getMapboxMap().pixelForCoordinate(it)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onStart() {
@@ -727,6 +784,11 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
         mapboxNavigation.unregisterLocationObserver(locationObserver)
         mapboxNavigation.unregisterVoiceInstructionsObserver(voiceInstructionsObserver)
         mapboxNavigation.unregisterRouteProgressObserver(replayProgressObserver)
+
+        /** Commented because now these listeners are not attached on the start @see initLocationComponent*/
+        binding.mapView.location.removeOnIndicatorBearingChangedListener(onIndicatorBearingChangedListener)
+        binding.mapView.location.removeOnIndicatorPositionChangedListener(onIndicatorPositionChangedListener)
+        binding.mapView.gestures.removeOnMoveListener(onMoveListener)
     }
 
     override fun onDestroy() {
@@ -754,7 +816,7 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
         mapboxNavigation.requestRoutes(
             RouteOptions.builder()
                 .applyDefaultNavigationOptions()
-                .applyLanguageAndVoiceUnitOptions(this)
+                .applyLanguageAndVoiceUnitOptions(this.requireContext())
                 .coordinatesList(listOf(originPoint, destination))
                 // provide the bearing for the origin of the request to ensure
                 // that the returned route faces in the direction of the current user movement
@@ -800,7 +862,7 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
         startSimulation(routes.first())
 
         // show UI elements & hide
-        binding.topAppBar.visibility = View.GONE
+        //binding.topAppBar.visibility = View.GONE
         binding.soundButton.visibility = View.VISIBLE
         binding.routeOverview.visibility = View.VISIBLE
         binding.tripProgressCard.visibility = View.VISIBLE
@@ -817,7 +879,7 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
         mapboxReplayer.stop()
 
         // hide UI elements
-        binding.topAppBar.visibility = View.VISIBLE
+        //binding.topAppBar.visibility = View.VISIBLE
         binding.soundButton.visibility = View.INVISIBLE
         binding.maneuverView.visibility = View.INVISIBLE
         binding.routeOverview.visibility = View.INVISIBLE
@@ -835,54 +897,70 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
         }
     }
 
-    private fun addAnnotationToMap() {
-// Create an instance of the Annotation API and get the PointAnnotationManager.
+    private fun addAnnotationToMap(list: List<Stop>) {
         bitmapFromDrawableRes(
-            this@TurnByTurnExperienceActivity,
-            R.drawable.red_marker
-        )?.let {
+            this@HomeFragmentCopy.requireContext(),
+            com.mapbox.navigation.examples.R.drawable.red_marker
+        )?.let { it ->
+            // Create an instance of the Annotation API and get the PointAnnotationManager.
             val annotationApi = binding.mapView.annotations
             val pointAnnotationManager = annotationApi.createPointAnnotationManager()
-            val json = """
-                {
-                	stop: "jorge",
-                    lng: -4.731,
-                    lat: 41.635
-                }
-            """.trimIndent()
-            val parsed = JsonParser.parseString(json)
             // Set options for the resulting symbol layer.
-            val immutableList = listOf(
-                Point.fromLngLat(-4.731,41.653),
-                Point.fromLngLat(-4.726,41.652),
-                Point.fromLngLat(-4.729,41.647),
-                Point.fromLngLat(-4.725,41.648),
-            )
-            val list = mutableListOf<PointAnnotationOptions>()
-            for (point in immutableList){
-                list.add(
-                    PointAnnotationOptions()
-                        .withData(parsed)
-                        .withPoint(point)
-                        .withIconImage(it)
-                        .withIconAnchor(IconAnchor.BOTTOM)
-                )
+            val listWithIcons = list.map { stop ->
+                //Add the TextView over the Point with the total number of the bikes
+                addViewAnnotation(stop, it)
+                PointAnnotationOptions()
+                    .withPoint(stop.location)
+                    .withData(stop.toJson())
+                    .withIconImage(it)
+                    .withIconAnchor(IconAnchor.BOTTOM)
             }
-            val listPoints: List<PointAnnotation> = pointAnnotationManager.create(list)
-            addViewAnnotations(listPoints)
-            pointAnnotationManager.addClickListener{
-                stopClicked ->
-                val viewAnotationManager = binding.mapView.viewAnnotationManager
-                val viewAnnotation = viewAnotationManager.getViewAnnotationByFeatureId(stopClicked.featureIdentifier)
+            pointAnnotationManager.create(listWithIcons)
+            pointAnnotationManager.addClickListener{ stopClicked ->
+                val cameraPosition = CameraOptions.Builder()
+                    .zoom(14.5)
+                    .center(stopClicked.geometry)
+                    .build()
+                // Move to the annotation in the map
+                mapboxMap.easeTo(cameraPosition, mapAnimationOptions { duration(2000) })
 
-                viewAnnotation?.visibility = View.VISIBLE
-                println("------------------------")
-                println(stopClicked.getData())
-                println("------------------------")
+                //Open the bottom drawer
+                bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+
+                //Add the specific info of the stop to the bottom Drawer
+                setStopInfo(stopClicked)
 
                 true
             }
         }
+    }
+
+    private fun addViewAnnotation(
+        stop: Stop,
+        it: Bitmap
+    ) {
+        val viewAnnotationManager = binding.mapView.viewAnnotationManager
+        val viewAnnotation = viewAnnotationManager.addViewAnnotation(
+            resId = com.mapbox.navigation.examples.R.layout.annotation_view_number_stop,
+            options = viewAnnotationOptions {
+                geometry(stop.location)
+                anchor(ViewAnnotationAnchor.BOTTOM)
+                offsetY(it.height)
+            }
+        )
+        AnnotationViewNumberStopBinding.bind(viewAnnotation).apply {
+            numberBikes.text = stop.getTotalBikeCount().toString()
+        }
+    }
+
+    private fun setStopInfo(stopClicked: PointAnnotation) {
+        val data = JSONObject(stopClicked.getData().toString())
+        binding.persistentBottomSheet.stopTitle.text = data.get("address").toString()
+        //TODO calculate the distance from the user to the stop
+        //binding.persistentBottomSheet.stopDistance = data.get("title").toString()
+        binding.persistentBottomSheet.countPedalBike.text = data.get("count_bike_pedal").toString()
+        binding.persistentBottomSheet.countElectricBike.text = data.get("count_bike_electric").toString()
+        binding.persistentBottomSheet.countBikeStop.text = data.get("count_bike_stop").toString()
     }
 
     private fun bitmapFromDrawableRes(context: Context, @DrawableRes resourceId: Int) =
@@ -895,7 +973,7 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
         return if (sourceDrawable is BitmapDrawable) {
             sourceDrawable.bitmap
         } else {
-// copying drawable object to not manipulate on the same reference
+            // copying drawable object to not manipulate on the same reference
             val constantState = sourceDrawable.constantState ?: return null
             val drawable = constantState.newDrawable().mutate()
             val bitmap: Bitmap = Bitmap.createBitmap(
@@ -913,46 +991,4 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
         visibility = if (visibility == View.VISIBLE) View.GONE else View.VISIBLE
     }
 
-    @SuppressLint("SetTextI18n")
-    private fun addViewAnnotations(listStops: List<PointAnnotation>) {
-        val point: Point = Point.fromLngLat(-4.731,41.653)
-        val viewAnnotationManager = binding.mapView.viewAnnotationManager
-        val viewAnnotation = viewAnnotationManager.addViewAnnotation(
-            resId = R.layout.annotation_view,
-            options = viewAnnotationOptions {
-                geometry(point)
-                associatedFeatureId(listStops[0].featureIdentifier)
-                anchor(ViewAnnotationAnchor.BOTTOM)
-                offsetY((listStops[0].iconImageBitmap?.height!!).toInt())
-            }
-        )
-        AnnotationViewBinding.bind(viewAnnotation).apply {
-            textNativeView.text = listStops[0].getData().toString()
-            closeNativeView.setOnClickListener {
-                viewAnnotationManager.removeViewAnnotation(viewAnnotation)
-            }
-            selectButton.setOnClickListener { b ->
-                val button = b as Button
-                val isSelected = button.text.toString().equals("SELECT", true)
-                val pxDelta = if (isSelected) 25 else -25
-                button.text = if (isSelected) "DESELECT" else "SELECT"
-                viewAnnotationManager.updateViewAnnotation(
-                    viewAnnotation,
-                    viewAnnotationOptions {
-                        selected(isSelected)
-                    }
-                )
-                (button.layoutParams as ViewGroup.MarginLayoutParams).apply {
-                    bottomMargin += pxDelta
-                    rightMargin += pxDelta
-                    leftMargin += pxDelta
-                }
-                button.requestLayout()
-            }
-        }
-    }
-
 }
-private const val MAPBOX_ACCESS_TOKEN_PLACEHOLDER = "YOUR_MAPBOX_ACCESS_TOKEN_GOES_HERE"
-
-

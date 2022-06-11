@@ -23,6 +23,7 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
 
     val stops = MutableLiveData<List<Stop>>()
+    var bike = MutableLiveData<Bike>()
 
     /** When the viewModel is created in the Fragment the All the Stops are loaded*/
     init {
@@ -30,12 +31,18 @@ class HomeViewModel @Inject constructor(
             val result:List<Stop> = getStopsUseCase()
             stops.postValue(result)
         }
+    }
+
+    fun unlockBike(bike: Int){
         viewModelScope.launch {
-            val result: Bike = unlockBikeUseCase(45)
-            val locked: Bike = lockBikeUseCase(45, 1)
-            //TODO update UI
+            val result: Bike = unlockBikeUseCase(bike)
             Log.d("bike", result.toString())
-            Log.d("bike", locked.toString())
+        }
+    }
+
+    fun lockBike(bike: Int, stop: Int){
+        viewModelScope.launch {
+            val locked: Bike = lockBikeUseCase(45, 1)
         }
     }
 
