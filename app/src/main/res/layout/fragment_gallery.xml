@@ -85,7 +85,5 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/routeOverview" />
 
-    <include layout="@layout/persistent_bottom_sheet" android:id="@id/persistent_bottom_sheet"/>
-
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

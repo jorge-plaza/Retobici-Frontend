@@ -88,5 +88,11 @@
   <string name="how_to_approach">Como llegar</string>
     <string name="recenter_user_location_button">"Recentrar mapa en usuario "</string>
     <string name="start_route">Comenzar ruta</string>
+    <string name="ongoing_route">Ruta en Curso</string>
+    <string name="end_route">Finalizar</string>
+    <string name="default_time">00:00</string>
+  <string name="default_battery_level" />
+  <string name="fab_content_desc">finish_route</string>
+    <string name="default_bike_id">0001</string>
 
 </resources>

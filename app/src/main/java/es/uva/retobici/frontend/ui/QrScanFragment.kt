@@ -10,7 +10,9 @@ import android.view.ViewGroup
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.navigation.findNavController
 import com.budiyev.android.codescanner.AutoFocusMode
 import com.budiyev.android.codescanner.CodeScanner
 import com.budiyev.android.codescanner.DecodeCallback
@@ -31,7 +33,7 @@ class QrScanFragment : Fragment(){
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
-    val homeViewModel : HomeViewModel by viewModels()
+    private val homeViewModel : HomeViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -39,6 +41,9 @@ class QrScanFragment : Fragment(){
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentScanQrBinding.inflate(inflater, container, false)
+        homeViewModel.unlockedBike.observe(this.viewLifecycleOwner) {
+            view?.findNavController()?.navigateUp()
+        }
         return binding.root
     }
 
@@ -78,6 +83,8 @@ class QrScanFragment : Fragment(){
 
         //Unlock the bike
         binding.startRouteButton.setOnClickListener {
+            binding.startTripProgressBar.visibility = View.VISIBLE
+            binding.startRouteButton.visibility = View.INVISIBLE
             homeViewModel.unlockBike(45)
         }
     }

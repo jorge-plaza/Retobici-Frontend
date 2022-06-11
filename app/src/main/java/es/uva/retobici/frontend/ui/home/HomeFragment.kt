@@ -4,7 +4,6 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
-import android.content.res.Configuration
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -16,33 +15,29 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
+import android.widget.Chronometer
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.navigation.findNavController
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.gson.JsonParser
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.android.gestures.MoveGestureDetector
-import com.mapbox.api.directions.v5.models.Bearing
-import com.mapbox.api.directions.v5.models.DirectionsRoute
-import com.mapbox.api.directions.v5.models.RouteOptions
 import com.mapbox.bindgen.Expected
 import com.mapbox.geojson.Point
 import com.mapbox.maps.*
 import com.mapbox.maps.extension.style.layers.properties.generated.IconAnchor
 import com.mapbox.maps.plugin.animation.MapAnimationOptions.Companion.mapAnimationOptions
-import com.mapbox.maps.plugin.animation.camera
 import com.mapbox.maps.plugin.animation.easeTo
 import com.mapbox.maps.plugin.annotation.annotations
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotation
@@ -53,30 +48,18 @@ import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorBearingChangedListener
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.locationcomponent.location
-import com.mapbox.maps.viewannotation.ViewAnnotationManager
 import com.mapbox.maps.viewannotation.viewAnnotationOptions
 import com.mapbox.navigation.R
-import com.mapbox.navigation.base.TimeFormat
-import com.mapbox.navigation.base.extensions.applyDefaultNavigationOptions
-import com.mapbox.navigation.base.extensions.applyLanguageAndVoiceUnitOptions
-import com.mapbox.navigation.base.options.NavigationOptions
-import com.mapbox.navigation.base.route.RouterCallback
-import com.mapbox.navigation.base.route.RouterFailure
-import com.mapbox.navigation.base.route.RouterOrigin
 import com.mapbox.navigation.core.MapboxNavigation
 import com.mapbox.navigation.core.MapboxNavigationProvider
 import com.mapbox.navigation.core.directions.session.RoutesObserver
-import com.mapbox.navigation.core.formatter.MapboxDistanceFormatter
-import com.mapbox.navigation.core.history.MapboxHistoryRecorder
 import com.mapbox.navigation.core.replay.MapboxReplayer
 import com.mapbox.navigation.core.replay.ReplayLocationEngine
 import com.mapbox.navigation.core.replay.route.ReplayProgressObserver
-import com.mapbox.navigation.core.replay.route.ReplayRouteMapper
 import com.mapbox.navigation.core.trip.session.LocationMatcherResult
 import com.mapbox.navigation.core.trip.session.LocationObserver
 import com.mapbox.navigation.core.trip.session.RouteProgressObserver
 import com.mapbox.navigation.core.trip.session.VoiceInstructionsObserver
-import com.mapbox.navigation.examples.databinding.AnnotationViewBinding
 import com.mapbox.navigation.examples.databinding.AnnotationViewNumberStopBinding
 import com.mapbox.navigation.examples.databinding.FragmentHomeBinding
 import com.mapbox.navigation.ui.base.util.MapboxNavigationConsumer
@@ -84,16 +67,12 @@ import com.mapbox.navigation.ui.maneuver.api.MapboxManeuverApi
 import com.mapbox.navigation.ui.maneuver.view.MapboxManeuverView
 import com.mapbox.navigation.ui.maps.camera.NavigationCamera
 import com.mapbox.navigation.ui.maps.camera.data.MapboxNavigationViewportDataSource
-import com.mapbox.navigation.ui.maps.camera.lifecycle.NavigationBasicGesturesHandler
-import com.mapbox.navigation.ui.maps.camera.state.NavigationCameraState
 import com.mapbox.navigation.ui.maps.camera.transition.NavigationCameraTransitionOptions
 import com.mapbox.navigation.ui.maps.location.NavigationLocationProvider
 import com.mapbox.navigation.ui.maps.route.arrow.api.MapboxRouteArrowApi
 import com.mapbox.navigation.ui.maps.route.arrow.api.MapboxRouteArrowView
-import com.mapbox.navigation.ui.maps.route.arrow.model.RouteArrowOptions
 import com.mapbox.navigation.ui.maps.route.line.api.MapboxRouteLineApi
 import com.mapbox.navigation.ui.maps.route.line.api.MapboxRouteLineView
-import com.mapbox.navigation.ui.maps.route.line.model.MapboxRouteLineOptions
 import com.mapbox.navigation.ui.maps.route.line.model.RouteLine
 import com.mapbox.navigation.ui.tripprogress.api.MapboxTripProgressApi
 import com.mapbox.navigation.ui.tripprogress.model.*
@@ -106,7 +85,7 @@ import com.mapbox.navigation.ui.voice.model.SpeechValue
 import com.mapbox.navigation.ui.voice.model.SpeechVolume
 import dagger.hilt.android.AndroidEntryPoint
 import es.uva.retobici.frontend.domain.model.Bike
-import es.uva.retobici.frontend.domain.model.PedalBike
+import es.uva.retobici.frontend.domain.model.ElectricBike
 import es.uva.retobici.frontend.domain.model.Stop
 //import es.uva.retobici.frontend.turnbyturn.MAPBOX_ACCESS_TOKEN_PLACEHOLDER
 import org.json.JSONObject
@@ -119,11 +98,14 @@ class HomeFragment : Fragment(), PermissionsListener {
 
     private var _binding: FragmentHomeBinding? = null
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<LinearLayout>
+    private lateinit var bottomSheetBehaviorRoute: BottomSheetBehavior<LinearLayout>
     private var list:List<Stop> = listOf()
 
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
+
+    private val homeViewModel : HomeViewModel by activityViewModels()
 
     private companion object {
         private const val BUTTON_ANIMATION_DURATION = 1500L
@@ -495,10 +477,10 @@ class HomeFragment : Fragment(), PermissionsListener {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        Log.d("lifecycle", "oncreateView")
         //Fused location to retrieve device location
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this.requireActivity())
 
-        val homeViewModel : HomeViewModel by viewModels()
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
 
         homeViewModel.stops.observe(this.viewLifecycleOwner) { stops ->
@@ -506,10 +488,11 @@ class HomeFragment : Fragment(), PermissionsListener {
             addAnnotationToMap(stops)
         }
 
-        homeViewModel.bike.observe(this.viewLifecycleOwner) { bike ->
+        homeViewModel.unlockedBike.observe(this.viewLifecycleOwner) { bike ->
             setRouteWithBike(bike)
         }
-        bottomSheetBehavior = BottomSheetBehavior.from(binding.persistentBottomSheet.persistentBottomSheet)
+        bottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheetContentStop.persistentBottomSheetStop)
+        bottomSheetBehaviorRoute = BottomSheetBehavior.from(binding.bottomSheetContentRoute.persistentBottomSheetRoute)
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
         bottomSheetBehavior.addBottomSheetCallback(object :
             BottomSheetBehavior.BottomSheetCallback() {
@@ -529,8 +512,12 @@ class HomeFragment : Fragment(), PermissionsListener {
             //Load QR scan Fragment
         }
 
-        binding.persistentBottomSheet.pedalBikeLayout.setOnClickListener {
+        binding.bottomSheetContentStop.pedalBikeLayout.setOnClickListener {
             //Reserve this type of bike
+        }
+
+        binding.bottomSheetContentRoute.stopRouteButton.setOnClickListener {
+
         }
 
 
@@ -576,8 +563,18 @@ class HomeFragment : Fragment(), PermissionsListener {
     }
 
 
-    private fun setRouteWithBike(bike: Bike?) {
-        TODO("Not yet implemented")
+    private fun setRouteWithBike(bike: Bike) {
+        binding.bottomSheetContentStop.persistentBottomSheetStop.visibility = View.GONE
+        binding.bottomSheetContentRoute.persistentBottomSheetRoute.visibility = View.VISIBLE
+        binding.bottomSheetContentRoute.bikeId.text = bike.id.toString()
+        if (bike is ElectricBike){
+            binding.bottomSheetContentRoute.bikeBattery.text = bike.battery.toString()
+        }else{
+            binding.bottomSheetContentRoute.bikeBattery.visibility = View.GONE
+            binding.bottomSheetContentRoute.iconBattery.visibility = View.GONE
+        }
+        bottomSheetBehaviorRoute.state = BottomSheetBehavior.STATE_EXPANDED
+        binding.bottomSheetContentRoute.routeDuration.start()
     }
 
     private fun setupGesturesListener() {
@@ -631,17 +628,19 @@ class HomeFragment : Fragment(), PermissionsListener {
     }
 
     override fun onDestroyView() {
+        Log.d("lifecycle", "ondestroyview")
         super.onDestroyView()
         _binding = null
     }
 
     override fun onStart() {
+        Log.d("lifecycle", "onstart")
         super.onStart()
-
         // register event listeners
     }
 
     override fun onStop() {
+        Log.d("lifecycle", "onstop")
         super.onStop()
 
         /** Commented because now these listeners are not attached on the start @see initLocationComponent*/
@@ -651,6 +650,7 @@ class HomeFragment : Fragment(), PermissionsListener {
     }
 
     override fun onDestroy() {
+        Log.d("lifecycle", "onstopview")
         super.onDestroy()
         MapboxNavigationProvider.destroy()
         mapboxReplayer.finish()
@@ -659,6 +659,11 @@ class HomeFragment : Fragment(), PermissionsListener {
         //routeLineView.cancel()
         //speechApi.cancel()
         //voiceInstructionsPlayer.shutdown()
+    }
+
+    override fun onResume() {
+        Log.d("lifecycle", "onresume")
+        super.onResume()
     }
 
     /*
@@ -772,12 +777,12 @@ class HomeFragment : Fragment(), PermissionsListener {
 
     private fun setStopInfo(stopClicked: PointAnnotation) {
         val data = JSONObject(stopClicked.getData().toString())
-        binding.persistentBottomSheet.stopTitle.text = data.get("address").toString()
+        binding.bottomSheetContentStop.stopTitle.text = data.get("address").toString()
         //TODO calculate the distance from the user to the stop
-        //binding.persistentBottomSheet.stopDistance = data.get("title").toString()
-        binding.persistentBottomSheet.countPedalBike.text = data.get("count_bike_pedal").toString()
-        binding.persistentBottomSheet.countElectricBike.text = data.get("count_bike_electric").toString()
-        binding.persistentBottomSheet.countBikeStop.text = data.get("count_bike_stop").toString()
+        //binding.persistentBottomSheetStops.stopDistance = data.get("title").toString()
+        binding.bottomSheetContentStop.countPedalBike.text = data.get("count_bike_pedal").toString()
+        binding.bottomSheetContentStop.countElectricBike.text = data.get("count_bike_electric").toString()
+        binding.bottomSheetContentStop.countBikeStop.text = data.get("count_bike_stop").toString()
     }
 
     private fun bitmapFromDrawableRes(context: Context, @DrawableRes resourceId: Int) =

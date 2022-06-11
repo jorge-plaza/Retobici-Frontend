@@ -31,6 +31,10 @@
         android:id="@+id/qr_scan"
         android:name="es.uva.retobici.frontend.ui.QrScanFragment"
         android:label="QR Scan"
-        tools:layout="@layout/fragment_scan_qr"/>
+        tools:layout="@layout/fragment_scan_qr">
+        <action
+            android:id="@+id/action_qr_scan_to_nav_home"
+            app:destination="@id/nav_home" />
+    </fragment>
 
 </navigation>

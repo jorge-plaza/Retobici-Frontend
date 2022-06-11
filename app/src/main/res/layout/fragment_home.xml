@@ -104,12 +104,20 @@
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:contentDescription="@string/qr_content_desc"
-        app:layout_anchor="@id/persistent_bottom_sheet"
+        app:layout_anchor="@+id/bottom_sheet_content_stop"
         app:layout_anchorGravity="top|end"
         app:srcCompat="@drawable/ic_baseline_qr_code_scanner_24"
         />
 
-    <include layout="@layout/persistent_bottom_sheet" android:id="@id/persistent_bottom_sheet"/>
+
+    <include
+        android:id="@+id/bottom_sheet_content_stop"
+        layout="@layout/bottom_sheet_content_stop"
+        android:visibility="visible"/>
+    <include
+        android:id="@+id/bottom_sheet_content_route"
+        layout="@layout/bottom_sheet_content_route"
+        android:visibility="gone"/>
 
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

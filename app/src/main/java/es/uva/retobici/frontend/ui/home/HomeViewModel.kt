@@ -12,6 +12,7 @@ import es.uva.retobici.frontend.domain.model.Stop
 import es.uva.retobici.frontend.domain.usecase.GetStopsUseCase
 import es.uva.retobici.frontend.domain.usecase.LockBikeUseCase
 import es.uva.retobici.frontend.domain.usecase.UnlockBikeUseCase
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -23,7 +24,8 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
 
     val stops = MutableLiveData<List<Stop>>()
-    var bike = MutableLiveData<Bike>()
+    var unlockedBike = MutableLiveData<Bike>()
+    var boolean = MutableLiveData<Boolean>(false)
 
     /** When the viewModel is created in the Fragment the All the Stops are loaded*/
     init {
@@ -34,9 +36,10 @@ class HomeViewModel @Inject constructor(
     }
 
     fun unlockBike(bike: Int){
-        viewModelScope.launch {
+        val job:Job = viewModelScope.launch {
             val result: Bike = unlockBikeUseCase(bike)
-            Log.d("bike", result.toString())
+            boolean.postValue(true)
+            unlockedBike.postValue(result)
         }
     }
 
