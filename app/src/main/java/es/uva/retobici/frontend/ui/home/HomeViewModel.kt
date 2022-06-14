@@ -35,6 +35,10 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    fun clearRoute(){
+        route.postValue(null)
+    }
+
     fun unlockBike(bike: Int){
         viewModelScope.launch {
             val result: Bike = unlockBikeUseCase(bike)

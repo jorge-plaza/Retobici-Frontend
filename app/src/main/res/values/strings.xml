@@ -1,65 +1,65 @@
 <resources>
-  <string name="app_name">Retobici</string>
+    <string name="app_name">Retobici</string>
 
-  <string name="noTokenDialogTitle">Error: no mapbox access token</string>
-  <string name="noTokenDialogBody">Please put your mapbox access token to res/values/mapbox_access_token.xml</string>
+    <string name="noTokenDialogTitle">Error: no mapbox access token</string>
+    <string name="noTokenDialogBody">Please put your mapbox access token to res/values/mapbox_access_token.xml</string>
 
-  <string name="title_multiple_way_points">Build a multiple waypoints route</string>
-  <string name="description_multiple_way_points">Build a route using different types of waypoints: regular, silent, and named.</string>
-  <string name="reset_route_button">Reset the route</string>
-  <string name="waypoint_type_regular">Regular</string>
-  <string name="waypoint_type_named">Named</string>
-  <string name="waypoint_type_silent">Silent</string>
+    <string name="title_multiple_way_points">Build a multiple waypoints route</string>
+    <string name="description_multiple_way_points">Build a route using different types of waypoints: regular, silent, and named.</string>
+    <string name="reset_route_button">Reset the route</string>
+    <string name="waypoint_type_regular">Regular</string>
+    <string name="waypoint_type_named">Named</string>
+    <string name="waypoint_type_silent">Silent</string>
 
-  <string name="title_voice">Play voice instructions for a route</string>
-  <string name="description_voice">Use the example to play voice instructions using Speech API and Voice Instruction Player.</string>
+    <string name="title_voice">Play voice instructions for a route</string>
+    <string name="description_voice">Use the example to play voice instructions using Speech API and Voice Instruction Player.</string>
 
-  <string name="title_turn_by_turn">Add a complete turn-by-turn experience</string>
-  <string name="description_turn_by_turn">Render a complete turn-by-turn experience using all relevant Navigation SDK APIs and pre-built UI components.</string>
+    <string name="title_turn_by_turn">Add a complete turn-by-turn experience</string>
+    <string name="description_turn_by_turn">Render a complete turn-by-turn experience using all relevant Navigation SDK APIs and pre-built UI components.</string>
 
-  <string name="title_trip_progress">Render trip progress information</string>
-  <string name="description_trip_progress">Draw trip progress information using the Trip Progress API and MapboxTripProgressView.</string>
+    <string name="title_trip_progress">Render trip progress information</string>
+    <string name="description_trip_progress">Draw trip progress information using the Trip Progress API and MapboxTripProgressView.</string>
 
-  <string name="title_speed_limit">Render speed limit for a route</string>
-  <string name="description_speed_limit">Render the speed limit of the current road using the Speed Limit API and MapboxSpeedLimitView.</string>
+    <string name="title_speed_limit">Render speed limit for a route</string>
+    <string name="description_speed_limit">Render the speed limit of the current road using the Speed Limit API and MapboxSpeedLimitView.</string>
 
-  <string name="title_route">Draw route lines on a map</string>
-  <string name="description_route">Draw route lines on a map using the route line and route arrow APIs and the related MapboxRouteLineView and MapboxRouteArrowView.</string>
+    <string name="title_route">Draw route lines on a map</string>
+    <string name="description_route">Draw route lines on a map using the route line and route arrow APIs and the related MapboxRouteLineView and MapboxRouteArrowView.</string>
 
-  <string name="title_maneuver">Render maneuver instructions for a route</string>
-  <string name="description_maneuver">Draw maneuver instructions using the Maneuver API and MapboxManeuverView.</string>
+    <string name="title_maneuver">Render maneuver instructions for a route</string>
+    <string name="description_maneuver">Draw maneuver instructions using the Maneuver API and MapboxManeuverView.</string>
 
-  <string name="title_current_location">Render current location on a map</string>
-  <string name="description_current_location">Use NavigationLocationProvider to show a device\'s current location as a puck on a map.</string>
+    <string name="title_current_location">Render current location on a map</string>
+    <string name="description_current_location">Use NavigationLocationProvider to show a device\'s current location as a puck on a map.</string>
 
-  <string name="fetch_a_route_message">Route was fetched successfully</string>
-  <string name="fetch_a_route_cancel_message">Route request was canceled</string>
-  <string name="fetch_a_route_error_message">Route request returned error</string>
-  <string name="title_fetch_route">Fetch routes between an origin and destination</string>
-  <string name="description_fetch_route">Fetch routes by specifying two coordinates in RouteOptions and passing those options to MapboxNavigation\'s requestRoutes method.</string>
+    <string name="fetch_a_route_message">Route was fetched successfully</string>
+    <string name="fetch_a_route_cancel_message">Route request was canceled</string>
+    <string name="fetch_a_route_error_message">Route request returned error</string>
+    <string name="title_fetch_route">Fetch routes between an origin and destination</string>
+    <string name="description_fetch_route">Fetch routes by specifying two coordinates in RouteOptions and passing those options to MapboxNavigation\'s requestRoutes method.</string>
 
-  <string name="title_camera_transitions">Use camera to frame the map</string>
-  <string name="description_camera_transitions">Use NavigationCamera to show various map camera transitions using live location and routing data.</string>
+    <string name="title_camera_transitions">Use camera to frame the map</string>
+    <string name="description_camera_transitions">Use NavigationCamera to show various map camera transitions using live location and routing data.</string>
 
-  <string name="title_building_extrusions">Render building extrusion on arrival</string>
-  <string name="description_building_extrusions">Use the example to render building extrusions on arrival using building API and MapboxBuildingView.</string>
+    <string name="title_building_extrusions">Render building extrusion on arrival</string>
+    <string name="description_building_extrusions">Use the example to render building extrusions on arrival using building API and MapboxBuildingView.</string>
 
-  <string name="title_building_extrusions_custom_arrival">Render building extrusion based on custom arrival criteria.</string>
-  <string name="description_building_extrusions_custom_arrival">Use the example to render building extrusions on arrival using building API and MapboxBuildingView.</string>
+    <string name="title_building_extrusions_custom_arrival">Render building extrusion based on custom arrival criteria.</string>
+    <string name="description_building_extrusions_custom_arrival">Use the example to render building extrusions on arrival using building API and MapboxBuildingView.</string>
     <string name="content_description_close">Close tab</string>
     <string name="page_title">RetoBici</string>
-  <string name="more">mas</string>
-  <string name="content_description_more">Mas opciones</string>
+    <string name="more">mas</string>
+    <string name="content_description_more">Mas opciones</string>
     <string name="edit">editar</string>
-  <string name="content_description_search">Editar contenido</string>
-  <string name="favorite">favorito</string>
-  <string name="content_description_favorite">Sitio Favorito</string>
+    <string name="content_description_search">Editar contenido</string>
+    <string name="favorite">favorito</string>
+    <string name="content_description_favorite">Sitio Favorito</string>
     <string name="search">buscar</string>
     <string name="drawer_item_rutas">Historial Rutas</string>
-  <string name="drawer_item_recompensas">Recompensas</string>
-  <string name="drawer_item_ajustes">Ajustes</string>
+    <string name="drawer_item_recompensas">Recompensas</string>
+    <string name="drawer_item_ajustes">Ajustes</string>
     <string name="header_title">Jorge Plaza</string>
-  <string name="header_text">Puntos: 1000</string>
+    <string name="header_text">Puntos: 1000</string>
     <string name="nav_header_desc">profile_image</string>
     <string name="title_activity_testactivityremove">Testactivityremove</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
@@ -75,24 +75,33 @@
     <string name="bottom_sheet">Panel inferior</string>
     <string name="qr_content_desc">QR scan button</string>
     <string name="pedal_bike_descriptor">Bicicleta a pedales</string>
-    <string name="pedal_bike" >Bicicleta a pedales</string>
-  <string name="electric_bike">Bicicleta eléctrica</string>
-  <string name="bike_stop_available">Paradas libres</string>
-  <string name="default_stop_title">default name</string>
-  <string name="count_pedal_bike">4</string>
-  <string name="count_electric_bike">1</string>
-  <string name="count_bike_stop">7</string>
-  <string name="bottom_drawer_slash">—</string>
-  <string name="km_away_from_stop">2,2 km</string>
-  <string name="default_stop_distance">2,2km</string>
-  <string name="how_to_approach">Como llegar</string>
+    <string name="pedal_bike">Bicicleta a pedales</string>
+    <string name="electric_bike">Bicicleta eléctrica</string>
+    <string name="bike_stop_available">Paradas libres</string>
+    <string name="default_stop_title">default name</string>
+    <string name="count_pedal_bike">4</string>
+    <string name="count_electric_bike">1</string>
+    <string name="count_bike_stop">7</string>
+    <string name="bottom_drawer_slash">—</string>
+    <string name="km_away_from_stop">2,2 km</string>
+    <string name="default_stop_distance">2,2km</string>
+    <string name="how_to_approach">Como llegar</string>
     <string name="recenter_user_location_button">"Recentrar mapa en usuario "</string>
     <string name="start_route">Comenzar ruta</string>
     <string name="ongoing_route">Ruta en Curso</string>
     <string name="end_route">Finalizar</string>
     <string name="default_time">00:00</string>
-  <string name="default_battery_level" />
-  <string name="fab_content_desc">finish_route</string>
+    <string name="default_battery_level" />
+    <string name="fab_content_desc">finish_route</string>
     <string name="default_bike_id">0001</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="route_completed">Ruta Completada</string>
+    <string name="check">check ok</string>
+    <string name="default_distance">500 metros</string>
+    <string name="default_duration">10 min</string>
+    <string name="default_points">100 puntos</string>
+    <string name="ok">ok</string>
+    <string name="finish">Finalizar</string>
 
 </resources>

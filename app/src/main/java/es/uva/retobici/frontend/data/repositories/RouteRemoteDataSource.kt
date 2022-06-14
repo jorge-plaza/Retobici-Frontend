@@ -1,8 +1,6 @@
 package es.uva.retobici.frontend.data.repositories
 
-import android.util.Log
 import es.uva.retobici.frontend.data.source.api.RouteAPI
-import es.uva.retobici.frontend.data.source.dto.toBikeModel
 import es.uva.retobici.frontend.data.source.dto.toRouteModel
 import es.uva.retobici.frontend.domain.model.Bike
 import es.uva.retobici.frontend.domain.model.Route
@@ -22,7 +20,7 @@ class RouteRemoteDataSource @Inject constructor(
     }
     override suspend fun finishRoute(route: Route): Route {
         return withContext(Dispatchers.IO){
-            val response = api.postFinishRoute(route.id)
+            val response = api.postFinishRoute(route.id, route)
             // ?: if response is null empty list
             //response.body()?.map { it.toStopModel() } ?: emptyList()
             //TODO check the nullable response

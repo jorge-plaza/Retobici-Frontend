@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:mapbox="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/container"
@@ -9,14 +8,14 @@
     android:layout_height="match_parent"
     tools:context="es.uva.retobici.frontend.ui.home.HomeFragment">
 
+
     <com.mapbox.maps.MapView
         android:id="@+id/mapView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         mapbox:mapbox_cameraTargetLat="41.6521980085908"
         mapbox:mapbox_cameraTargetLng="-4.724492467501443"
-        mapbox:mapbox_cameraZoom="14.0"
-        />
+        mapbox:mapbox_cameraZoom="14.0" />
 
     <androidx.cardview.widget.CardView
         android:id="@+id/tripProgressCard"
@@ -73,6 +72,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/soundButton" />
 
+    <!--
     <com.mapbox.navigation.ui.maps.camera.view.MapboxRecenterButton
         android:id="@+id/recenter"
         android:layout_width="wrap_content"
@@ -82,42 +82,51 @@
         app:layout_anchor="@id/qr_scan"
         app:layout_anchorGravity="top"
         android:layout_gravity="top|end"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent" />-->
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/recenter_location"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraintLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="98dp"
-        android:contentDescription="@string/recenter_user_location_button"
-        app:layout_anchor="@id/qr_scan"
-        app:layout_anchorGravity="top"
-        android:layout_gravity="top|end"
-        app:srcCompat="@drawable/ic_baseline_my_location_24"
-        style="@style/Widget.Material3.Button"
-        />
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/qr_scan"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
-        android:contentDescription="@string/qr_content_desc"
-        app:layout_anchor="@+id/bottom_sheet_content_stop"
-        app:layout_anchorGravity="top|end"
-        app:srcCompat="@drawable/ic_baseline_qr_code_scanner_24"
-        />
+        app:layout_dodgeInsetEdges="bottom">
 
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/recenter_location"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:contentDescription="@string/recenter_user_location_button"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/qr_scan"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:srcCompat="@drawable/ic_baseline_my_location_24" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/qr_scan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:contentDescription="@string/qr_content_desc"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:srcCompat="@drawable/ic_baseline_qr_code_scanner_24" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <include
         android:id="@+id/bottom_sheet_content_stop"
         layout="@layout/bottom_sheet_content_stop"
-        android:visibility="visible"/>
+        android:visibility="visible" />
+
     <include
         android:id="@+id/bottom_sheet_content_route"
         layout="@layout/bottom_sheet_content_route"
-        android:visibility="gone"/>
+        android:visibility="gone" />
 
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

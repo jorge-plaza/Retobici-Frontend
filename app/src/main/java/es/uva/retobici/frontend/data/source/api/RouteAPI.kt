@@ -1,7 +1,7 @@
 package es.uva.retobici.frontend.data.source.api
 
-import es.uva.retobici.frontend.data.source.dto.BikeDTO
 import es.uva.retobici.frontend.data.source.dto.RouteDTO
+import es.uva.retobici.frontend.domain.model.Route
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -15,6 +15,7 @@ interface RouteAPI {
 
     @POST("/retobici/routes/{route}/finish")
     suspend fun postFinishRoute(
-        @Path("route") route: Int
+        @Path("route") route_id: Int,
+        @Body route: Route
     ): Response<RouteDTO>
 }

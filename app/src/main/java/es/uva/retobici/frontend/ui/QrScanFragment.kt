@@ -78,6 +78,7 @@ class QrScanFragment : Fragment(){
                 binding.bikeScannedText.text = it.text.toString()
                 binding.startTripProgressBar.visibility = View.VISIBLE
             }
+            //TODO cambiar esto para que no se llame mil veces
             homeViewModel.unlockBike(it.text.toInt())
         }
         codeScanner.errorCallback = ErrorCallback { // or ErrorCallback.SUPPRESS

@@ -13,6 +13,9 @@
         <action
             android:id="@+id/action_nav_home_to_qr_scan"
             app:destination="@id/qr_scan" />
+        <action
+            android:id="@+id/action_nav_home_to_routeSummaryFragment"
+            app:destination="@id/routeSummaryFragment" />
     </fragment>
 
     <fragment
@@ -36,5 +39,10 @@
             android:id="@+id/action_qr_scan_to_nav_home"
             app:destination="@id/nav_home" />
     </fragment>
+    <fragment
+        android:id="@+id/routeSummaryFragment"
+        android:name="com.mapbox.navigation.examples.RouteSummaryFragment"
+        android:label="fragment_route_summary"
+        tools:layout="@layout/fragment_route_summary" />
 
 </navigation>

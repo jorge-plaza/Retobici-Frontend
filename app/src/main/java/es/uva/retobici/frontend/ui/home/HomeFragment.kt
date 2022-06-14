@@ -11,6 +11,7 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.location.Location
 import android.os.Bundle
+import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
 import android.view.LayoutInflater
@@ -209,8 +210,14 @@ class HomeFragment : Fragment(), PermissionsListener {
             setRouteWithBike(bike)
         }
 
-        homeViewModel.route.observe(this.viewLifecycleOwner){
-            binding.bottomSheetContentRoute.persistentBottomSheetRoute.visibility = View.GONE
+        homeViewModel.route.observe(this.viewLifecycleOwner){ route ->
+            if (route == null){
+                binding.bottomSheetContentRoute.persistentBottomSheetRoute.visibility = View.GONE
+                binding.recenterLocation.layoutParams
+            }else if (route.final_stop != null && route.points != null) {
+                binding.bottomSheetContentRoute.persistentBottomSheetRoute.visibility = View.GONE
+                view?.findNavController()?.navigate(com.mapbox.navigation.examples.R.id.action_nav_home_to_routeSummaryFragment)
+            }
         }
         bottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheetContentStop.persistentBottomSheetStop)
         bottomSheetBehaviorRoute = BottomSheetBehavior.from(binding.bottomSheetContentRoute.persistentBottomSheetRoute)
@@ -465,7 +472,7 @@ class HomeFragment : Fragment(), PermissionsListener {
                 mapboxMap.easeTo(cameraPosition, mapAnimationOptions { duration(2000) })
 
                 //Open the bottom drawer
-                bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+                openBottomDrawer()
 
                 //Add the specific info of the stop to the bottom Drawer
                 setStopInfo(stopClicked)
@@ -473,6 +480,11 @@ class HomeFragment : Fragment(), PermissionsListener {
                 true
             }
         }
+    }
+
+    private fun openBottomDrawer() {
+        binding.bottomSheetContentStop.persistentBottomSheetStop.visibility = View.VISIBLE
+        bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
     }
 
     private fun addViewAnnotation(
