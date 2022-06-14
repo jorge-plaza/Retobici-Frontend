@@ -97,12 +97,21 @@ import java.util.*
 class HomeFragment : Fragment(), PermissionsListener {
 
     private var _binding: FragmentHomeBinding? = null
-    private lateinit var bottomSheetBehavior: BottomSheetBehavior<LinearLayout>
-    private lateinit var bottomSheetBehaviorRoute: BottomSheetBehavior<LinearLayout>
+
+    private var _bottomSheetBehavior: BottomSheetBehavior<LinearLayout>? = null
+    private var _bottomSheetBehaviorRoute: BottomSheetBehavior<LinearLayout>? = null
+
+    private val bottomSheetBehavior get() = _bottomSheetBehavior!!
+    private val bottomSheetBehaviorRoute get() = _bottomSheetBehaviorRoute!!
 
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
+
+    //private lateinit var bottomSheetBehavior: BottomSheetBehavior<LinearLayout>
+    //private lateinit var bottomSheetBehaviorRoute: BottomSheetBehavior<LinearLayout>
+
+
 
     private val homeViewModel : HomeViewModel by activityViewModels()
 
@@ -200,6 +209,8 @@ class HomeFragment : Fragment(), PermissionsListener {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this.requireActivity())
 
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
+        _bottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheetContentStop.persistentBottomSheetStop)
+        _bottomSheetBehaviorRoute = BottomSheetBehavior.from(binding.bottomSheetContentRoute.persistentBottomSheetRoute)
 
         homeViewModel.stops.observe(this.viewLifecycleOwner) { stops ->
             //TODO check the await or something that checks if the maps have been created
@@ -219,8 +230,8 @@ class HomeFragment : Fragment(), PermissionsListener {
                 view?.findNavController()?.navigate(com.mapbox.navigation.examples.R.id.action_nav_home_to_routeSummaryFragment)
             }
         }
-        bottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheetContentStop.persistentBottomSheetStop)
-        bottomSheetBehaviorRoute = BottomSheetBehavior.from(binding.bottomSheetContentRoute.persistentBottomSheetRoute)
+        //bottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheetContentStop.persistentBottomSheetStop)
+        //bottomSheetBehaviorRoute = BottomSheetBehavior.from(binding.bottomSheetContentRoute.persistentBottomSheetRoute)
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
         bottomSheetBehavior.addBottomSheetCallback(object :
             BottomSheetBehavior.BottomSheetCallback() {
@@ -235,9 +246,9 @@ class HomeFragment : Fragment(), PermissionsListener {
         })
 
         binding.qrScan.setOnClickListener { view ->
+            //Load QR scan Fragment
             //TODO fix packages
             view.findNavController().navigate(com.mapbox.navigation.examples.R.id.action_nav_home_to_qr_scan)
-            //Load QR scan Fragment
         }
 
         binding.bottomSheetContentStop.pedalBikeLayout.setOnClickListener {
@@ -360,6 +371,8 @@ class HomeFragment : Fragment(), PermissionsListener {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        _bottomSheetBehavior = null
+        _bottomSheetBehaviorRoute = null
     }
 
     override fun onStart() {

@@ -94,7 +94,6 @@
     <string name="default_battery_level" />
     <string name="fab_content_desc">finish_route</string>
     <string name="default_bike_id">0001</string>
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="route_completed">Ruta Completada</string>
     <string name="check">check ok</string>

@@ -780,7 +780,7 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
                     routes: List<NavigationRoute>,
                     routerOrigin: RouterOrigin
                 ) {
-                    TODO("Not yet implemented")
+
                 }
 
                 override fun onCanceled(routeOptions: RouteOptions, routerOrigin: RouterOrigin) {

@@ -9,7 +9,6 @@ class EndRouteUseCase @Inject constructor(
 ){
 
     suspend operator fun invoke(route: Route, stop: Int, duration: Int): Route {
-        //TODO start tracking the user to get the route
         route.final_stop = stop
         route.duration = duration
         return remoteDataSource.finishRoute(route)
