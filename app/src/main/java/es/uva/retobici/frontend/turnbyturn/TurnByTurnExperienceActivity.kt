@@ -45,9 +45,7 @@ import com.mapbox.navigation.base.extensions.applyDefaultNavigationOptions
 import com.mapbox.navigation.base.extensions.applyLanguageAndVoiceUnitOptions
 import com.mapbox.navigation.base.options.HistoryRecorderOptions
 import com.mapbox.navigation.base.options.NavigationOptions
-import com.mapbox.navigation.base.route.RouterCallback
-import com.mapbox.navigation.base.route.RouterFailure
-import com.mapbox.navigation.base.route.RouterOrigin
+import com.mapbox.navigation.base.route.*
 import com.mapbox.navigation.core.MapboxNavigation
 import com.mapbox.navigation.core.MapboxNavigationProvider
 import com.mapbox.navigation.core.directions.session.RoutesObserver
@@ -769,19 +767,20 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
                 )
                 .layersList(listOf(mapboxNavigation.getZLevel(), null))
                 .build(),
-            object : RouterCallback {
-                override fun onRoutesReady(
-                    routes: List<DirectionsRoute>,
-                    routerOrigin: RouterOrigin
-                ) {
-                    setRouteAndStartNavigation(routes)
-                }
+            object : NavigationRouterCallback {
 
                 override fun onFailure(
                     reasons: List<RouterFailure>,
                     routeOptions: RouteOptions
                 ) {
                     // no impl
+                }
+
+                override fun onRoutesReady(
+                    routes: List<NavigationRoute>,
+                    routerOrigin: RouterOrigin
+                ) {
+                    TODO("Not yet implemented")
                 }
 
                 override fun onCanceled(routeOptions: RouteOptions, routerOrigin: RouterOrigin) {

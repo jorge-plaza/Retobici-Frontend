@@ -42,6 +42,12 @@ class QrScanFragment : Fragment(){
     ): View {
         _binding = FragmentScanQrBinding.inflate(inflater, container, false)
         homeViewModel.unlockedBike.observe(this.viewLifecycleOwner) {
+            binding.startTripProgressBar.visibility = View.INVISIBLE
+            binding.startRouteButton.visibility = View.VISIBLE
+        }
+
+        homeViewModel.route.observe(this.viewLifecycleOwner){
+            Log.d("hola", "llega aqui")
             view?.findNavController()?.navigateUp()
         }
         return binding.root
@@ -69,9 +75,10 @@ class QrScanFragment : Fragment(){
         // Callbacks
         codeScanner.decodeCallback = DecodeCallback {
             activity?.runOnUiThread {
-                binding.bikeScannedText.text = it.text
-                binding.startRouteButton.visibility = View.VISIBLE
+                binding.bikeScannedText.text = it.text.toString()
+                binding.startTripProgressBar.visibility = View.VISIBLE
             }
+            homeViewModel.unlockBike(it.text.toInt())
         }
         codeScanner.errorCallback = ErrorCallback { // or ErrorCallback.SUPPRESS
             Log.d("qr", "Camera initialization error: ${it.message}")
@@ -85,7 +92,8 @@ class QrScanFragment : Fragment(){
         binding.startRouteButton.setOnClickListener {
             binding.startTripProgressBar.visibility = View.VISIBLE
             binding.startRouteButton.visibility = View.INVISIBLE
-            homeViewModel.unlockBike(45)
+            Log.d("hola","click en el boton")
+            homeViewModel.startRoute()
         }
     }
 
@@ -111,7 +119,7 @@ class QrScanFragment : Fragment(){
         }
     }
 
-    private fun makePermissionRequest() {
+        private fun makePermissionRequest() {
         ActivityCompat.requestPermissions(this.requireActivity(), arrayOf(android.Manifest.permission.CAMERA),
             CAMERA_REQUEST_CODE
         )
