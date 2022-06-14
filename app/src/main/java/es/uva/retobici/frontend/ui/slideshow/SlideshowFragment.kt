@@ -32,19 +32,6 @@ class SlideshowFragment : Fragment() {
         _binding = FragmentSlideshowBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        slideshowViewModel.onCreate()
-        slideshowViewModel.stops.observe(this.viewLifecycleOwner, Observer { stops ->
-            binding.textSlideshow.text = stops[0].address
-        })
-
-        slideshowViewModel.getStops()
-
-
-        /*
-        val textView: TextView = binding.textSlideshow
-        slideshowViewModel.text.observe(viewLifecycleOwner) {
-            textView.text = it
-        }*/
         return root
     }
 

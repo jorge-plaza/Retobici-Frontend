@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/qr_scanner_fragment"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <com.budiyev.android.codescanner.CodeScannerView
+        android:id="@+id/scanner_view"
+        android:layout_width="match_parent"
+        android:layout_height="500dp"
+        app:autoFocusButtonColor="@color/colorAccent"
+        app:autoFocusButtonVisible="true"
+        app:flashButtonColor="@color/colorAccent"
+        app:flashButtonVisible="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:maskColor="#65000000" />
+
+    <TextView
+        android:id="@+id/bike_scanned_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/scanner_view"
+        android:layout_margin="40dp"
+        />
+
+    <Button
+        android:id="@+id/start_route_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/start_route"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/bike_scanned_text"
+        android:visibility="invisible"
+        />
+
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:id="@+id/start_trip_progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/bike_scanned_text"
+        android:indeterminate="true"
+        android:visibility="invisible"
+        />
+
+</RelativeLayout>

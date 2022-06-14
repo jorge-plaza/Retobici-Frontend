@@ -12,6 +12,7 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.location.Location
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
@@ -42,10 +43,9 @@ import com.mapbox.maps.viewannotation.viewAnnotationOptions
 import com.mapbox.navigation.base.TimeFormat
 import com.mapbox.navigation.base.extensions.applyDefaultNavigationOptions
 import com.mapbox.navigation.base.extensions.applyLanguageAndVoiceUnitOptions
+import com.mapbox.navigation.base.options.HistoryRecorderOptions
 import com.mapbox.navigation.base.options.NavigationOptions
-import com.mapbox.navigation.base.route.RouterCallback
-import com.mapbox.navigation.base.route.RouterFailure
-import com.mapbox.navigation.base.route.RouterOrigin
+import com.mapbox.navigation.base.route.*
 import com.mapbox.navigation.core.MapboxNavigation
 import com.mapbox.navigation.core.MapboxNavigationProvider
 import com.mapbox.navigation.core.directions.session.RoutesObserver
@@ -91,6 +91,7 @@ import com.mapbox.navigation.ui.voice.model.SpeechAnnouncement
 import com.mapbox.navigation.ui.voice.model.SpeechError
 import com.mapbox.navigation.ui.voice.model.SpeechValue
 import com.mapbox.navigation.ui.voice.model.SpeechVolume
+import com.mapbox.navigation.utils.internal.toPoint
 import java.util.Locale
 
 /**
@@ -324,6 +325,7 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
 
         override fun onNewLocationMatcherResult(locationMatcherResult: LocationMatcherResult) {
             val enhancedLocation = locationMatcherResult.enhancedLocation
+            Log.d("testlocation", enhancedLocation.toPoint().toString())
             // update location puck's position on the map
             navigationLocationProvider.changePosition(
                 location = enhancedLocation,
@@ -548,7 +550,12 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
                 NavigationOptions.Builder(this.applicationContext)
                     .accessToken(getString(R.string.mapbox_access_token))
                     // comment out the location engine setting block to disable simulation
-                    //.locationEngine(replayLocationEngine)
+                    .locationEngine(replayLocationEngine)
+                    .historyRecorderOptions(
+                        HistoryRecorderOptions.Builder()
+                            .fileDirectory("testDirectory")
+                            .build()
+                    )
                     .build()
             )
         }
@@ -645,6 +652,12 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
         ) {
             // add long click listener that search for a route to the clicked destination
             binding.mapView.gestures.addOnMapLongClickListener { point ->
+                findRoute(point)
+                true
+            }
+
+            binding.mapView.gestures.addOnMapClickListener {
+                point ->
                 findRoute(point)
                 true
             }
@@ -754,19 +767,20 @@ class TurnByTurnExperienceActivity : AppCompatActivity(), PermissionsListener {
                 )
                 .layersList(listOf(mapboxNavigation.getZLevel(), null))
                 .build(),
-            object : RouterCallback {
-                override fun onRoutesReady(
-                    routes: List<DirectionsRoute>,
-                    routerOrigin: RouterOrigin
-                ) {
-                    setRouteAndStartNavigation(routes)
-                }
+            object : NavigationRouterCallback {
 
                 override fun onFailure(
                     reasons: List<RouterFailure>,
                     routeOptions: RouteOptions
                 ) {
                     // no impl
+                }
+
+                override fun onRoutesReady(
+                    routes: List<NavigationRoute>,
+                    routerOrigin: RouterOrigin
+                ) {
+
                 }
 
                 override fun onCanceled(routeOptions: RouteOptions, routerOrigin: RouterOrigin) {
