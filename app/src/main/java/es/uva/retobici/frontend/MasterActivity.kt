@@ -52,7 +52,7 @@ class MasterActivity : AppCompatActivity(), PermissionsListener {
         // menu should be considered as top level destinations.
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.nav_home, R.id.nav_gallery, R.id.nav_slideshow, R.id.nav_bottom_sheet
+                R.id.nav_home, R.id.nav_gallery, R.id.nav_gallery, R.id.nav_slideshow
             ), drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)

@@ -47,7 +47,6 @@ class QrScanFragment : Fragment(){
         }
 
         homeViewModel.route.observe(this.viewLifecycleOwner){
-            Log.d("hola", "llega aqui")
             view?.findNavController()?.navigateUp()
         }
         return binding.root

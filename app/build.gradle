@@ -83,4 +83,6 @@ dependencies {
 
     //QR code scanner
     implementation 'com.github.yuriy-budiyev:code-scanner:2.3.2'
+
+    implementation("androidx.cardview:cardview:1.0.0")
 }

@@ -102,5 +102,8 @@
     <string name="default_points">100 puntos</string>
     <string name="ok">ok</string>
     <string name="finish">Finalizar</string>
+    <string name="reward_description_media">reward image</string>
+    <string name="content_description_media">rewardimage</string>
+    <string name="default_reward_title">Reward title default</string>
 
 </resources>
