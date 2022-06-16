@@ -110,5 +110,8 @@
     <string name="unlock_bike">Desbloquear Bici</string>
     <string name="route_summary">Resumen de la Ruta</string>
     <string name="rewards">Recompensas</string>
+    <string name="reserv_bike">Seleccione para rservar</string>
+    <string name="reserve_bike">Seleccione para Reservar</string>
+    <string name="bike_status">Estado de la bici</string>
 
 </resources>

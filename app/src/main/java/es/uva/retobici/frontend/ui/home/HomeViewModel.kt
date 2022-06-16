@@ -8,10 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import es.uva.retobici.frontend.domain.model.Bike
 import es.uva.retobici.frontend.domain.model.Route
 import es.uva.retobici.frontend.domain.model.Stop
-import es.uva.retobici.frontend.domain.usecase.GetStopsUseCase
-import es.uva.retobici.frontend.domain.usecase.EndRouteUseCase
-import es.uva.retobici.frontend.domain.usecase.StartRouteUseCase
-import es.uva.retobici.frontend.domain.usecase.UnlockBikeUseCase
+import es.uva.retobici.frontend.domain.usecase.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -21,11 +18,13 @@ class HomeViewModel @Inject constructor(
     private val unlockBikeUseCase: UnlockBikeUseCase,
     private val startRouteUseCase: StartRouteUseCase,
     private val endRouteUseCase: EndRouteUseCase,
+    private val reserveBikeUseCase: ReserveBikeUseCase,
 ) : ViewModel() {
 
     val stops = MutableLiveData<List<Stop>>()
     val unlockedBike = MutableLiveData<Bike>()
     val route = MutableLiveData<Route>()
+    val reserved = MutableLiveData<Boolean>()
 
     /** When the viewModel is created in the Fragment the All the Stops are loaded*/
     init {
@@ -55,12 +54,21 @@ class HomeViewModel @Inject constructor(
 
     fun finishRoute(stop: Int, duration: Int){
         viewModelScope.launch {
-            Log.d("hole", "se llama con esta ruta: ${route.value.toString()}")
             val result: Route = endRouteUseCase(route.value!!, stop, duration)
             route.postValue(result)
         }
     }
 
+    fun reserveBike(stop: Stop) {
+        viewModelScope.launch {
+            val result: Boolean = reserveBikeUseCase(stop)
+            reserved.postValue(result)
+            //TODO decidir como mostrar una bici reservada
+        }
+    }
 
-    //TODO check if this pattern is allowed, calling the view model from the view
+    fun reserveElectricBike() {
+
+    }
+
 }

@@ -14,17 +14,17 @@ import android.os.Bundle
 import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.Chronometer
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.compose.ui.graphics.Color
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.get
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -111,10 +111,10 @@ class HomeFragment : Fragment(), PermissionsListener {
     // onDestroyView.
     private val binding get() = _binding!!
 
+    private var isReserved = false
+
     //private lateinit var bottomSheetBehavior: BottomSheetBehavior<LinearLayout>
     //private lateinit var bottomSheetBehaviorRoute: BottomSheetBehavior<LinearLayout>
-
-
 
     private val homeViewModel : HomeViewModel by activityViewModels()
 
@@ -236,6 +236,10 @@ class HomeFragment : Fragment(), PermissionsListener {
                 view?.findNavController()?.navigate(com.mapbox.navigation.examples.R.id.action_nav_home_to_routeSummaryFragment)
             }
         }
+
+        homeViewModel.reserved.observe(this.viewLifecycleOwner){ reservation ->
+            setReservationState(reservation)
+        }
         //bottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheetContentStop.persistentBottomSheetStop)
         //bottomSheetBehaviorRoute = BottomSheetBehavior.from(binding.bottomSheetContentRoute.persistentBottomSheetRoute)
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
@@ -259,7 +263,20 @@ class HomeFragment : Fragment(), PermissionsListener {
 
         binding.bottomSheetContentStop.pedalBikeLayout.setOnClickListener {
             //Reserve this type of bike
+            val button = binding.bottomSheetContentStop.reserveBikeButton
+            button.isEnabled = true
+            button.text = "Reservar Bici"
+            button.setOnClickListener { homeViewModel.reserveBike(homeViewModel.stops.value!![1]) }
         }
+        binding.bottomSheetContentStop.electricBikeLayout.setOnClickListener {
+            //Reserve this type of bike
+            val button = binding.bottomSheetContentStop.reserveBikeButton
+            button.isEnabled = true
+            button.text = "Reservar Bici Eléctrica"
+            button.setOnClickListener { homeViewModel.reserveElectricBike() }
+        }
+
+
 
         binding.bottomSheetContentRoute.stopRouteButton.setOnClickListener {
             binding.bottomSheetContentRoute.routeDuration.text
@@ -292,6 +309,45 @@ class HomeFragment : Fragment(), PermissionsListener {
         binding.recenterLocation.setOnClickListener { recenterOnDeviceLocation() }
 
         return binding.root
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(com.mapbox.navigation.examples.R.menu.top_app_bar, menu)
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            com.mapbox.navigation.examples.R.id.bike_status -> {
+                // navigate to settings screen
+                true
+            }
+            com.mapbox.navigation.examples.R.id.search -> {
+                // navigate to settings screen
+                true
+            }
+            com.mapbox.navigation.examples.R.id.more -> {
+                // save profile changes
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu){
+        super.onPrepareOptionsMenu(menu)
+        val item = menu.findItem(com.mapbox.navigation.examples.R.id.bike_status)
+        item.isVisible = isReserved
+    }
+
+    private fun setReservationState(reservation: Boolean?) {
+        isReserved = reservation!!
+        requireActivity().invalidateOptionsMenu()
     }
 
     private fun recenterOnDeviceLocation() {

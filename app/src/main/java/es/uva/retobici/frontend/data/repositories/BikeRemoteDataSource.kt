@@ -23,4 +23,11 @@ class BikeRemoteDataSource @Inject constructor(
         }
     }
 
+    override suspend fun reserveBike(stop: Int): Boolean {
+        return withContext(Dispatchers.IO) {
+            val response = api.postReserveBike(stop)
+            response.body().toString().toBoolean()
+        }
+    }
+
 }

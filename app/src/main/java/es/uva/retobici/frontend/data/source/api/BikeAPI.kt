@@ -10,6 +10,6 @@ interface BikeAPI {
     @POST("/retobici/bikes/unlock/{bike}/")
     suspend fun postUnlockBike(@Path("bike") bike: Int): Response<BikeDTO>
 
-    @POST("/retobici/bikes/reserve/{bike}/")
-    suspend fun postReserveBike(@Path("bike") bike: Int): Response<StopDTO>
+    @POST("/retobici/bikes/reserve/{stop}/reserve")
+    suspend fun postReserveBike(@Path("stop") stop: Int): Response<Boolean>
 }
