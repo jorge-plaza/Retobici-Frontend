@@ -36,7 +36,7 @@
     <fragment
         android:id="@+id/qr_scan"
         android:name="es.uva.retobici.frontend.ui.QrScanFragment"
-        android:label="QR Scan"
+        android:label="@string/unlock_bike"
         tools:layout="@layout/fragment_scan_qr">
         <action
             android:id="@+id/action_qr_scan_to_nav_home"
@@ -45,12 +45,12 @@
     <fragment
         android:id="@+id/routeSummaryFragment"
         android:name="es.uva.retobici.frontend.ui.RouteSummaryFragment"
-        android:label="fragment_route_summary"
+        android:label="@string/route_summary"
         tools:layout="@layout/fragment_route_summary" />
     <fragment
         android:id="@+id/nav_rewards"
+        android:label="@string/rewards"
         android:name="es.uva.retobici.frontend.ui.RewardsFragment"
-        android:label="fragment_rewards"
         tools:layout="@layout/fragment_rewards" />
 
 </navigation>

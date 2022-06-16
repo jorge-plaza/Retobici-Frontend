@@ -15,7 +15,7 @@ class RewardViewHolder(
 
     fun render(reward: Reward, onClickListener: (Reward) -> Unit){
         binding.rewardTitle.text = reward.title
-        binding.rewardPoints.text = reward.points.toString()
+        binding.rewardPoints.text = "Puntos necesarios ${reward.points}"
         binding.rewardDate.text = "Válido hasta: 12/11/2022"
         Glide.with(binding.imageReward.context).load(reward.image).into(binding.imageReward)
 

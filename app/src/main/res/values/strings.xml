@@ -107,5 +107,8 @@
     <string name="default_reward_title">Reward title default</string>
     <string name="reward_obtained">Recompensa ya obtenida</string>
     <string name="obtain">Obtener</string>
+    <string name="unlock_bike">Desbloquear Bici</string>
+    <string name="route_summary">Resumen de la Ruta</string>
+    <string name="rewards">Recompensas</string>
 
 </resources>
