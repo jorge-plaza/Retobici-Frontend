@@ -9,7 +9,8 @@ data class RewardDTO(
     @SerializedName("description") val description: String,
     @SerializedName("points") val points: Int,
     @SerializedName("image") val image: String,
+    @SerializedName("obtained") val obtained: Boolean,
 )
 fun RewardDTO.toRewardModel(): Reward{
-    return Reward(id,title,description,points,image)
+    return Reward(id,title,description,points,image, obtained)
 }

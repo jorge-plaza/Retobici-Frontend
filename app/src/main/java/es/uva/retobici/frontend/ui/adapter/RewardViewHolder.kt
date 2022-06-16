@@ -10,19 +10,21 @@ class RewardViewHolder(
     view: View
 ): RecyclerView.ViewHolder(view) {
 
+    //late init inteface implementd on the fragment
+
     val binding = ItemRewardBinding.bind(view)
 
-    fun render(reward: Reward){
+    fun render(reward: Reward, onClickListener: (Reward) -> Unit){
         binding.rewardTitle.text = reward.title
         binding.rewardPoints.text = reward.points.toString()
         binding.rewardDate.text = "Fecha de fin: 12/11/1997"
 
-        binding.itemRewardButtom.setOnClickListener {
-            Toast.makeText(
-                binding.itemRewardButtom.context,
-                reward.title,
-                Toast.LENGTH_SHORT
-            ).show()
+        //If the reward have been obtained can not be obtained again
+        if (reward.obtained){
+            binding.itemRewardButtom.isEnabled = false
+            binding.textRewardObtained.visibility = View.VISIBLE
         }
+
+        binding.itemRewardButtom.setOnClickListener { onClickListener(reward) }
     }
 }

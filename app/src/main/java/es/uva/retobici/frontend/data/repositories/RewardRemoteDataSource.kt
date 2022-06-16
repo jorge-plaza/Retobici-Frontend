@@ -21,4 +21,11 @@ class RewardRemoteDataSource @Inject constructor(
         }
     }
 
+    override suspend fun obtainReward(reward: Reward): Reward {
+        return withContext(Dispatchers.IO){
+            val response = api.postObtainReward(reward.id)
+            response.body()!!.toRewardModel()
+        }
+    }
+
 }

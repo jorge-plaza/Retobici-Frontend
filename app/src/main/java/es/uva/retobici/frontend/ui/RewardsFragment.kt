@@ -1,14 +1,13 @@
 package es.uva.retobici.frontend.ui
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
-import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.mapbox.navigation.examples.databinding.FragmentRewardsBinding
 import dagger.hilt.android.AndroidEntryPoint
 import es.uva.retobici.frontend.domain.model.Reward
@@ -42,12 +41,13 @@ class RewardsFragment : Fragment() {
         _binding = null
     }
 
-    fun initRecyclerView(rewards: List<Reward>){
+    private fun initRecyclerView(rewards: List<Reward>){
         val recyclerView = binding.recyclerRewards
-        val layoutManager = LinearLayoutManager(this.requireContext())
-        val decorator = DividerItemDecoration(this.requireContext(),layoutManager.orientation)
-        recyclerView.layoutManager = layoutManager
-        binding.recyclerRewards.addItemDecoration(decorator)
-        recyclerView.adapter = RewardAdapter(rewards)
+        recyclerView.layoutManager = LinearLayoutManager(this.requireContext())
+        recyclerView.adapter = RewardAdapter(rewards) { reward -> onClickObtain(reward) }
+    }
+
+    private fun onClickObtain(reward: Reward){
+        viewModel.obtainReward(reward)
     }
 }

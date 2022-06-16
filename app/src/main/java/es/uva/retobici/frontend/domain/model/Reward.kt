@@ -6,4 +6,5 @@ data class Reward(
     val description: String,
     val points: Int,
     val image: String,
+    val obtained: Boolean
 )

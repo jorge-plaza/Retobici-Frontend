@@ -105,5 +105,6 @@
     <string name="reward_description_media">reward image</string>
     <string name="content_description_media">rewardimage</string>
     <string name="default_reward_title">Reward title default</string>
+    <string name="reward_obtained">Recompensa ya obtenida</string>
 
 </resources>
