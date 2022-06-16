@@ -102,5 +102,13 @@
     <string name="default_points">100 puntos</string>
     <string name="ok">ok</string>
     <string name="finish">Finalizar</string>
+    <string name="reward_description_media">reward image</string>
+    <string name="content_description_media">rewardimage</string>
+    <string name="default_reward_title">Reward title default</string>
+    <string name="reward_obtained">Recompensa ya obtenida</string>
+    <string name="obtain">Obtener</string>
+    <string name="unlock_bike">Desbloquear Bici</string>
+    <string name="route_summary">Resumen de la Ruta</string>
+    <string name="rewards">Recompensas</string>
 
 </resources>

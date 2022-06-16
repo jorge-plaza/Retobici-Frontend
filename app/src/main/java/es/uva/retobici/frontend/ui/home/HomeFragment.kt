@@ -86,6 +86,7 @@ import com.mapbox.navigation.ui.voice.model.SpeechError
 import com.mapbox.navigation.ui.voice.model.SpeechValue
 import com.mapbox.navigation.ui.voice.model.SpeechVolume
 import dagger.hilt.android.AndroidEntryPoint
+import es.uva.retobici.frontend.MasterActivity
 import es.uva.retobici.frontend.domain.model.Bike
 import es.uva.retobici.frontend.domain.model.ElectricBike
 import es.uva.retobici.frontend.domain.model.Stop
@@ -97,6 +98,8 @@ import java.util.*
 class HomeFragment : Fragment(), PermissionsListener {
 
     private var _binding: FragmentHomeBinding? = null
+
+    private lateinit var masterActivity: MasterActivity
 
     private var _bottomSheetBehavior: BottomSheetBehavior<LinearLayout>? = null
     private var _bottomSheetBehaviorRoute: BottomSheetBehavior<LinearLayout>? = null
@@ -205,16 +208,19 @@ class HomeFragment : Fragment(), PermissionsListener {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        masterActivity = activity as MasterActivity
         //Fused location to retrieve device location
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this.requireActivity())
 
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         _bottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheetContentStop.persistentBottomSheetStop)
         _bottomSheetBehaviorRoute = BottomSheetBehavior.from(binding.bottomSheetContentRoute.persistentBottomSheetRoute)
+        masterActivity.loading(true)
 
         homeViewModel.stops.observe(this.viewLifecycleOwner) { stops ->
             //TODO check the await or something that checks if the maps have been created
             addAnnotationToMap(stops)
+            masterActivity.loading(false)
         }
 
         homeViewModel.unlockedBike.observe(this.viewLifecycleOwner) { bike ->
@@ -294,7 +300,7 @@ class HomeFragment : Fragment(), PermissionsListener {
             .addOnSuccessListener { location: Location ->
                 val userLocationPoint = Point.fromLngLat(location.longitude, location.latitude)
                 val cameraPosition = CameraOptions.Builder()
-                    .zoom(14.5)
+                    .zoom(15.0)
                     .center(userLocationPoint)
                     .build()
                 // Move to the annotation in the map

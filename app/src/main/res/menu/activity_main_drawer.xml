@@ -7,25 +7,28 @@
         android:id="@+id/group1"
         android:checkableBehavior="single">
         <item
+            android:id="@+id/nav_home"
+            android:icon="@drawable/ic_baseline_map_24"
+            android:title="@string/menu_home"
+            android:checked="true"/>
+        <item
+            android:id="@+id/nav_rewards"
+            android:icon="@drawable/ic_baseline_card_giftcard_24"
+            android:title="@string/drawer_item_recompensas" />
+        <item
+            android:id="@+id/nav_settings"
+            android:icon="@drawable/ic_baseline_settings_24"
+            android:title="@string/drawer_item_ajustes" />
+        <!--<item
             android:id="@+id/drawer_item_rutas"
             android:icon="@drawable/ic_baseline_map_24"
             android:title="@string/drawer_item_rutas"
             android:checked="true" />
-        <item
-            android:id="@+id/drawer_item_recompensas"
-            android:icon="@drawable/ic_baseline_card_giftcard_24"
-            android:title="@string/drawer_item_recompensas" />
-        <item
-            android:id="@+id/drawer_item_ajustes"
-            android:icon="@drawable/ic_baseline_settings_24"
-            android:title="@string/drawer_item_ajustes" />
+            -->
     </group>
 
     <group android:checkableBehavior="single">
-        <item
-            android:id="@+id/nav_home"
-            android:icon="@drawable/ic_menu_camera"
-            android:title="@string/menu_home" />
+
         <item
             android:id="@+id/nav_gallery"
             android:icon="@drawable/ic_menu_gallery"
@@ -34,9 +37,5 @@
             android:id="@+id/nav_slideshow"
             android:icon="@drawable/ic_menu_slideshow"
             android:title="@string/menu_slideshow" />
-        <item
-            android:id="@+id/nav_bottom_sheet"
-            android:icon="@drawable/ic_baseline_settings_24"
-            android:title="@string/search" />
     </group>
 </menu>

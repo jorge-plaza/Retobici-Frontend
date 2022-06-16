@@ -6,6 +6,7 @@ import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
+import android.view.View
 import android.widget.Toast
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.navigation.NavigationView
@@ -42,6 +43,7 @@ class MasterActivity : AppCompatActivity(), PermissionsListener {
 
         setSupportActionBar(binding.appBarMaster.topAppBar)
 
+        binding.appBarMaster.progressIndicator.visibility = View.GONE
 
         val drawerLayout: DrawerLayout = binding.drawerLayout
         val navView: NavigationView = binding.navView
@@ -52,7 +54,7 @@ class MasterActivity : AppCompatActivity(), PermissionsListener {
         // menu should be considered as top level destinations.
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.nav_home, R.id.nav_gallery, R.id.nav_slideshow, R.id.nav_bottom_sheet
+                R.id.nav_home, R.id.nav_gallery, R.id.nav_gallery, R.id.nav_slideshow
             ), drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
@@ -114,6 +116,14 @@ class MasterActivity : AppCompatActivity(), PermissionsListener {
                 permissionsNeeded.toTypedArray(),
                 10
             )
+        }
+    }
+
+    fun loading(visible: Boolean){
+        if (visible){
+            binding.appBarMaster.progressIndicator.visibility = View.VISIBLE
+        }else{
+            binding.appBarMaster.progressIndicator.visibility = View.INVISIBLE
         }
     }
 }

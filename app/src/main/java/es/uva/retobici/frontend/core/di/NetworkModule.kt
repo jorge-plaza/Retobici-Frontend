@@ -5,6 +5,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import es.uva.retobici.frontend.data.source.api.BikeAPI
+import es.uva.retobici.frontend.data.source.api.RewardAPI
 import es.uva.retobici.frontend.data.source.api.RouteAPI
 import es.uva.retobici.frontend.data.source.api.StopAPI
 import retrofit2.Retrofit
@@ -50,5 +51,14 @@ class NetworkModule {
     @Provides
     fun providesRouteApi(retrofit: Retrofit): RouteAPI {
         return retrofit.create(RouteAPI::class.java)
+    }
+
+    /**
+     * This is provided because you can not Inject an interface
+     */
+    @Singleton
+    @Provides
+    fun providesRewardApi(retrofit: Retrofit): RewardAPI {
+        return retrofit.create(RewardAPI::class.java)
     }
 }
