@@ -99,6 +99,8 @@ class HomeFragment : Fragment(), PermissionsListener {
 
     private var _binding: FragmentHomeBinding? = null
 
+    private lateinit var masterActivity: MasterActivity
+
     private var _bottomSheetBehavior: BottomSheetBehavior<LinearLayout>? = null
     private var _bottomSheetBehaviorRoute: BottomSheetBehavior<LinearLayout>? = null
 
@@ -206,13 +208,13 @@ class HomeFragment : Fragment(), PermissionsListener {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        masterActivity = activity as MasterActivity
         //Fused location to retrieve device location
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this.requireActivity())
 
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         _bottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheetContentStop.persistentBottomSheetStop)
         _bottomSheetBehaviorRoute = BottomSheetBehavior.from(binding.bottomSheetContentRoute.persistentBottomSheetRoute)
-        val masterActivity = activity as MasterActivity
         masterActivity.loading(true)
 
         homeViewModel.stops.observe(this.viewLifecycleOwner) { stops ->

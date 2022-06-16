@@ -1,5 +1,6 @@
 package es.uva.retobici.frontend.ui
 
+import android.app.Activity
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -23,6 +24,7 @@ class RewardsFragment : Fragment() {
     private var _binding: FragmentRewardsBinding? = null
     private val binding get() = _binding!!
     private val viewModel: RewardsViewModel by activityViewModels()
+    private lateinit var masterActivity: MasterActivity
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -30,7 +32,7 @@ class RewardsFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentRewardsBinding.inflate(inflater, container, false)
-        val masterActivity = activity as MasterActivity
+        masterActivity = activity as MasterActivity
         viewModel.rewards.observe(this.viewLifecycleOwner) { rewards ->
             initRecyclerView(rewards)
             masterActivity.loading(false)
@@ -51,6 +53,7 @@ class RewardsFragment : Fragment() {
     }
 
     private fun onClickObtain(reward: Reward) {
+        masterActivity.loading(true)
         viewModel.obtainReward(reward)
     }
 }
