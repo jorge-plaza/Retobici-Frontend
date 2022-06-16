@@ -15,7 +15,7 @@
         android:layout_height="match_parent"
         mapbox:mapbox_cameraTargetLat="41.6521980085908"
         mapbox:mapbox_cameraTargetLng="-4.724492467501443"
-        mapbox:mapbox_cameraZoom="14.0" />
+        mapbox:mapbox_cameraZoom="15.0" />
 
     <androidx.cardview.widget.CardView
         android:id="@+id/tripProgressCard"

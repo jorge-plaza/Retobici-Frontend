@@ -11,8 +11,6 @@ class RewardViewHolder(
     view: View
 ): RecyclerView.ViewHolder(view) {
 
-    //late init inteface implementd on the fragment
-
     val binding = ItemRewardBinding.bind(view)
 
     fun render(reward: Reward, onClickListener: (Reward) -> Unit){
