@@ -2,8 +2,11 @@ package es.uva.retobici.frontend
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
+import android.view.View
 import android.widget.Toast
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.navigation.NavigationView
@@ -16,11 +19,17 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.navigation.NavController
+import androidx.navigation.fragment.NavHostFragment
+import com.mapbox.android.core.location.LocationEngineProvider
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.navigation.examples.databinding.ActivityMasterBinding
 import com.mapbox.navigation.examples.R
+import dagger.hilt.android.AndroidEntryPoint
+import es.uva.retobici.utilities.LocationListeningCallback
 
+@AndroidEntryPoint
 class MasterActivity : AppCompatActivity(), PermissionsListener {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
@@ -34,15 +43,18 @@ class MasterActivity : AppCompatActivity(), PermissionsListener {
 
         setSupportActionBar(binding.appBarMaster.topAppBar)
 
+        binding.appBarMaster.progressIndicator.visibility = View.GONE
 
         val drawerLayout: DrawerLayout = binding.drawerLayout
         val navView: NavigationView = binding.navView
-        val navController = findNavController(R.id.nav_host_fragment_content_master)
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_master) as NavHostFragment
+        val navController: NavController = navHostFragment.navController
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.nav_home, R.id.nav_gallery, R.id.nav_slideshow, R.id.nav_bottom_sheet
+                R.id.nav_home, R.id.nav_gallery, R.id.nav_gallery, R.id.nav_slideshow
             ), drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
@@ -104,6 +116,14 @@ class MasterActivity : AppCompatActivity(), PermissionsListener {
                 permissionsNeeded.toTypedArray(),
                 10
             )
+        }
+    }
+
+    fun loading(visible: Boolean){
+        if (visible){
+            binding.appBarMaster.progressIndicator.visibility = View.VISIBLE
+        }else{
+            binding.appBarMaster.progressIndicator.visibility = View.INVISIBLE
         }
     }
 }

@@ -23,6 +23,7 @@ dependencyResolutionManagement {
                 password = "sk.eyJ1Ijoiam9yZ2UtcGxhemEiLCJhIjoiY2wwd3R3ZTdlMDRpaDNpcGk4ajl5b2s3MSJ9.-7x2ozXQafYINB_v0D-UvA"
             }
         }
+        maven { url 'https://jitpack.io' }
     }
 }
 rootProject.name = "retobici"

@@ -15,6 +15,12 @@ fun Context.examplesList() = listOf(
         getString(com.mapbox.navigation.examples.R.string.description_turn_by_turn),
         TurnByTurnExperienceActivity::class.java
     ),
+    MapboxExample(
+        ContextCompat.getDrawable(this, R.drawable.mapbox_compass_icon),
+        getString(com.mapbox.navigation.examples.R.string.title_multiple_way_points),
+        getString(com.mapbox.navigation.examples.R.string.description_multiple_way_points),
+        MasterActivity::class.java
+    ),
     //hide
     MapboxExample(
         ContextCompat.getDrawable(this, R.drawable.mapbox_compass_icon),
@@ -35,11 +41,5 @@ fun Context.examplesList() = listOf(
         getString(com.mapbox.navigation.examples.R.string.title_multiple_way_points),
         getString(com.mapbox.navigation.examples.R.string.description_multiple_way_points),
         MultipleWaypointsActivity::class.java
-    ),
-    MapboxExample(
-        ContextCompat.getDrawable(this, R.drawable.mapbox_compass_icon),
-        getString(com.mapbox.navigation.examples.R.string.title_multiple_way_points),
-        getString(com.mapbox.navigation.examples.R.string.description_multiple_way_points),
-        MasterActivity::class.java
     ),
 )
