@@ -7,7 +7,7 @@ import javax.inject.Inject
 class ReserveBikeUseCase @Inject constructor(
     private val remoteDataSource: BikeRemoteDataSource
 ){
-    suspend operator fun invoke(stop: Stop):Boolean{
-        return remoteDataSource.reserveBike(stop.id)
+    suspend operator fun invoke(stop: Int):Stop{
+        return remoteDataSource.reserveBike(stop)
     }
 }

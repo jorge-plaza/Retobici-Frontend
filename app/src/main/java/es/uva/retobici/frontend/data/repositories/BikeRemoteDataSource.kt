@@ -2,6 +2,7 @@ package es.uva.retobici.frontend.data.repositories
 
 import es.uva.retobici.frontend.data.source.api.BikeAPI
 import es.uva.retobici.frontend.data.source.dto.toBikeModel
+import es.uva.retobici.frontend.data.source.dto.toStopModel
 import es.uva.retobici.frontend.domain.model.Bike
 import es.uva.retobici.frontend.domain.model.Route
 import es.uva.retobici.frontend.domain.model.Stop
@@ -23,10 +24,10 @@ class BikeRemoteDataSource @Inject constructor(
         }
     }
 
-    override suspend fun reserveBike(stop: Int): Boolean {
+    override suspend fun reserveBike(stop: Int): Stop {
         return withContext(Dispatchers.IO) {
             val response = api.postReserveBike(stop)
-            response.body().toString().toBoolean()
+            response.body()!!.toStopModel()
         }
     }
 

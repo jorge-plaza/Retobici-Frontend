@@ -16,6 +16,5 @@ data class RouteDTO (
     @SerializedName("duration") val duration: Int?,
 )
 fun RouteDTO.toRouteModel(): Route {
-    Log.d("hola", initial_stop.toString())
     return Route(id,id_user,bike,initial_stop,final_stop,distance,points,duration)
 }

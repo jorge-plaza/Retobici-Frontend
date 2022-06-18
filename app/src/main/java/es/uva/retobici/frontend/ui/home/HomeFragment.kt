@@ -20,6 +20,7 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.ui.graphics.Color
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.app.ActivityCompat
@@ -32,6 +33,7 @@ import androidx.navigation.findNavController
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.snackbar.Snackbar
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.android.gestures.MoveGestureDetector
@@ -41,8 +43,10 @@ import com.mapbox.maps.*
 import com.mapbox.maps.extension.style.layers.properties.generated.IconAnchor
 import com.mapbox.maps.plugin.animation.MapAnimationOptions.Companion.mapAnimationOptions
 import com.mapbox.maps.plugin.animation.easeTo
+import com.mapbox.maps.plugin.annotation.AnnotationPlugin
 import com.mapbox.maps.plugin.annotation.annotations
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotation
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
 import com.mapbox.maps.plugin.gestures.OnMoveListener
@@ -112,6 +116,7 @@ class HomeFragment : Fragment(), PermissionsListener {
     private val binding get() = _binding!!
 
     private var isReserved = false
+    private var onRoute = false
 
     //private lateinit var bottomSheetBehavior: BottomSheetBehavior<LinearLayout>
     //private lateinit var bottomSheetBehaviorRoute: BottomSheetBehavior<LinearLayout>
@@ -141,6 +146,9 @@ class HomeFragment : Fragment(), PermissionsListener {
      * You need to get a new reference to this object whenever the [MapView] is recreated.
      */
     private lateinit var mapboxMap: MapboxMap
+
+    private lateinit var annotationApi: AnnotationPlugin
+    private lateinit var pointAnnotationManager: PointAnnotationManager
 
     private val permissionsManager = PermissionsManager(this)
 
@@ -229,29 +237,31 @@ class HomeFragment : Fragment(), PermissionsListener {
 
         homeViewModel.route.observe(this.viewLifecycleOwner){ route ->
             if (route == null){
+                //Initial state
                 binding.bottomSheetContentRoute.persistentBottomSheetRoute.visibility = View.GONE
                 binding.recenterLocation.layoutParams
+                //Hide top icon
+                setOnRouteState(false)
             }else if (route.final_stop != null && route.points != null) {
+                //When the route is started
                 binding.bottomSheetContentRoute.persistentBottomSheetRoute.visibility = View.GONE
                 view?.findNavController()?.navigate(com.mapbox.navigation.examples.R.id.action_nav_home_to_routeSummaryFragment)
             }
         }
 
         homeViewModel.reserved.observe(this.viewLifecycleOwner){ reservation ->
+            masterActivity.loading(false)
             setReservationState(reservation)
         }
         //bottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheetContentStop.persistentBottomSheetStop)
         //bottomSheetBehaviorRoute = BottomSheetBehavior.from(binding.bottomSheetContentRoute.persistentBottomSheetRoute)
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
-        bottomSheetBehavior.addBottomSheetCallback(object :
-            BottomSheetBehavior.BottomSheetCallback() {
-
-            override fun onSlide(bottomSheet: View, slideOffset: Float) {
-                // handle onSlide
-            }
-
+        bottomSheetBehaviorRoute.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
+            override fun onSlide(bottomSheet: View, slideOffset: Float) {}
             override fun onStateChanged(bottomSheet: View, newState: Int) {
-
+                if (newState == BottomSheetBehavior.STATE_HIDDEN) {
+                    showSnackBar("Haz click en el icono de la bici verde en la parte superior para visualizar la ruta", Snackbar.LENGTH_INDEFINITE)
+                }
             }
         })
 
@@ -263,10 +273,23 @@ class HomeFragment : Fragment(), PermissionsListener {
 
         binding.bottomSheetContentStop.pedalBikeLayout.setOnClickListener {
             //Reserve this type of bike
+            val stopID = binding.bottomSheetContentStop.stopId
             val button = binding.bottomSheetContentStop.reserveBikeButton
-            button.isEnabled = true
-            button.text = "Reservar Bici"
-            button.setOnClickListener { homeViewModel.reserveBike(homeViewModel.stops.value!![1]) }
+            val countBikesAvailable = binding.bottomSheetContentStop.countPedalBike.text.toString().toInt()
+            //Only if no reservation the button is accessible
+            if (!isReserved){
+                if (countBikesAvailable>0){
+                    button.isEnabled = true
+                    button.text = "Reservar Bici"
+                    button.setOnClickListener {
+                        masterActivity.loading(true)
+                        homeViewModel.reserveBike(stopID.text.toString().toInt())
+                    }
+                }else{
+                    button.isEnabled = false
+                    button.text = "No hay bicis disponibles"
+                }
+            }
         }
         binding.bottomSheetContentStop.electricBikeLayout.setOnClickListener {
             //Reserve this type of bike
@@ -276,7 +299,9 @@ class HomeFragment : Fragment(), PermissionsListener {
             button.setOnClickListener { homeViewModel.reserveElectricBike() }
         }
 
-
+        binding.bottomSheetContentStop.scanQrOnStopButton.setOnClickListener {
+            //TODO go to qr scan view to end route
+        }
 
         binding.bottomSheetContentRoute.stopRouteButton.setOnClickListener {
             binding.bottomSheetContentRoute.routeDuration.text
@@ -285,6 +310,9 @@ class HomeFragment : Fragment(), PermissionsListener {
             homeViewModel.finishRoute(2,seconds)
         }
 
+        //Init annotation api for only use one instance
+        annotationApi = binding.mapView.annotations
+        pointAnnotationManager = annotationApi.createPointAnnotationManager()
 
         mapboxMap = binding.mapView.getMapboxMap()
 
@@ -295,12 +323,8 @@ class HomeFragment : Fragment(), PermissionsListener {
             //Init the location pluck on the users location
             initLocationComponent()
             //Init the gesture Listener for the map used when you move the map rotate or zoom
-            setupGesturesListener()
+            //setupGesturesListener()
             // add long click listener that search for a route to the clicked destination
-            binding.mapView.gestures.addOnMapLongClickListener { point ->
-                //findRoute(point)
-                true
-            }
             //TODO paired with the other of async, previously the annotations were added here
             //addAnnotationToMap(list)
         }
@@ -325,6 +349,11 @@ class HomeFragment : Fragment(), PermissionsListener {
         return when (item.itemId) {
             com.mapbox.navigation.examples.R.id.bike_status -> {
                 // navigate to settings screen
+                showSnackBar("Tienes una bici reservada por 10 minutos")
+                true
+            }
+            com.mapbox.navigation.examples.R.id.route_status -> {
+                bottomSheetBehaviorRoute.state = BottomSheetBehavior.STATE_EXPANDED
                 true
             }
             com.mapbox.navigation.examples.R.id.search -> {
@@ -339,14 +368,31 @@ class HomeFragment : Fragment(), PermissionsListener {
         }
     }
 
-    override fun onPrepareOptionsMenu(menu: Menu){
-        super.onPrepareOptionsMenu(menu)
-        val item = menu.findItem(com.mapbox.navigation.examples.R.id.bike_status)
-        item.isVisible = isReserved
+    private fun showSnackBar(text: String, snackbarDuration: Int = Snackbar.LENGTH_LONG) {
+        Snackbar.make(view!!, text, snackbarDuration)
+            .setAction("OK") {}
+            .show()
     }
 
-    private fun setReservationState(reservation: Boolean?) {
-        isReserved = reservation!!
+    override fun onPrepareOptionsMenu(menu: Menu){
+        super.onPrepareOptionsMenu(menu)
+        val bikeStatusMenu = menu.findItem(com.mapbox.navigation.examples.R.id.bike_status)
+        val routeStatusMenu = menu.findItem(com.mapbox.navigation.examples.R.id.route_status)
+        bikeStatusMenu.isVisible = isReserved
+        routeStatusMenu.isVisible = onRoute
+    }
+
+    private fun setReservationState(reservation: Boolean) {
+        if (reservation){
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+            showSnackBar("Tienes una bici reservada por 10 minutos")
+        }
+        isReserved = reservation
+        requireActivity().invalidateOptionsMenu()
+    }
+
+    private fun setOnRouteState(routeActive: Boolean){
+        onRoute = routeActive
         requireActivity().invalidateOptionsMenu()
     }
 
@@ -366,6 +412,7 @@ class HomeFragment : Fragment(), PermissionsListener {
 
 
     private fun setRouteWithBike(bike: Bike) {
+        setOnRouteState(true)
         binding.bottomSheetContentStop.persistentBottomSheetStop.visibility = View.GONE
         binding.bottomSheetContentRoute.persistentBottomSheetRoute.visibility = View.VISIBLE
         binding.bottomSheetContentRoute.bikeId.text = bike.id.toString()
@@ -392,7 +439,7 @@ class HomeFragment : Fragment(), PermissionsListener {
             this.pulsingColor = R.color.primary_material_dark
         }
         /** This two listeners are used to track the user location */
-        locationComponentPlugin.addOnIndicatorPositionChangedListener(onIndicatorPositionChangedListener)
+        //locationComponentPlugin.addOnIndicatorPositionChangedListener(onIndicatorPositionChangedListener)
         //locationComponentPlugin.addOnIndicatorBearingChangedListener(onIndicatorBearingChangedListener)
     }
 
@@ -401,7 +448,7 @@ class HomeFragment : Fragment(), PermissionsListener {
      */
     private val onMoveListener = object : OnMoveListener {
         override fun onMoveBegin(detector: MoveGestureDetector) {
-            onCameraTrackingDismissed()
+            //onCameraTrackingDismissed()
         }
 
         override fun onMove(detector: MoveGestureDetector): Boolean {
@@ -525,9 +572,9 @@ class HomeFragment : Fragment(), PermissionsListener {
             com.mapbox.navigation.examples.R.drawable.red_marker
         )?.let { it ->
             // Create an instance of the Annotation API and get the PointAnnotationManager.
-            val annotationApi = binding.mapView.annotations
-            val pointAnnotationManager = annotationApi.createPointAnnotationManager()
             // Set options for the resulting symbol layer.
+            val viewAnnotationManager = binding.mapView.viewAnnotationManager
+            viewAnnotationManager.removeAllViewAnnotations()
             val listWithIcons = list.map { stop ->
                 //Add the TextView over the Point with the total number of the bikes
                 addViewAnnotation(stop, it)
@@ -537,7 +584,9 @@ class HomeFragment : Fragment(), PermissionsListener {
                     .withIconImage(it)
                     .withIconAnchor(IconAnchor.BOTTOM)
             }
+            pointAnnotationManager.deleteAll()
             pointAnnotationManager.create(listWithIcons)
+
             pointAnnotationManager.addClickListener{ stopClicked ->
                 val cameraPosition = CameraOptions.Builder()
                     .zoom(14.5)
@@ -583,11 +632,24 @@ class HomeFragment : Fragment(), PermissionsListener {
     private fun setStopInfo(stopClicked: PointAnnotation) {
         val data = JSONObject(stopClicked.getData().toString())
         binding.bottomSheetContentStop.stopTitle.text = data.get("address").toString()
+        binding.bottomSheetContentStop.stopId.text = data.get("id").toString()
         //TODO calculate the distance from the user to the stop
         //binding.persistentBottomSheetStops.stopDistance = data.get("title").toString()
         binding.bottomSheetContentStop.countPedalBike.text = data.get("count_bike_pedal").toString()
         binding.bottomSheetContentStop.countElectricBike.text = data.get("count_bike_electric").toString()
         binding.bottomSheetContentStop.countBikeStop.text = data.get("count_bike_stop").toString()
+        if (isReserved) {
+            val button = binding.bottomSheetContentStop.reserveBikeButton
+            button.isEnabled = false
+            button.text = "Ya tienes una reserva activa"
+        }
+        //There is at least one space to lock the bike
+        if (onRoute && data.get("count_bike_stop").toString().toInt()>0) {
+            binding.bottomSheetContentStop.reserveBikeButton.visibility = View.GONE
+            val button = binding.bottomSheetContentStop.scanQrOnStopButton
+            button.visibility = View.VISIBLE
+            button.isEnabled = true
+        }
     }
 
     private fun bitmapFromDrawableRes(context: Context, @DrawableRes resourceId: Int) =

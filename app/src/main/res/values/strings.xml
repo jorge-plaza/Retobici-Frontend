@@ -113,5 +113,7 @@
     <string name="reserv_bike">Seleccione para rservar</string>
     <string name="reserve_bike">Seleccione para Reservar</string>
     <string name="bike_status">Estado de la bici</string>
+    <string name="default_stop_id">1</string>
+    <string name="scan_qr">Escanea el QR para bloquear</string>
 
 </resources>

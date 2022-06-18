@@ -21,7 +21,7 @@ class HomeViewModel @Inject constructor(
     private val reserveBikeUseCase: ReserveBikeUseCase,
 ) : ViewModel() {
 
-    val stops = MutableLiveData<List<Stop>>()
+    val stops = MutableLiveData<MutableList<Stop>>()
     val unlockedBike = MutableLiveData<Bike>()
     val route = MutableLiveData<Route>()
     val reserved = MutableLiveData<Boolean>()
@@ -30,7 +30,8 @@ class HomeViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             val result:List<Stop> = getStopsUseCase()
-            stops.postValue(result)
+            val mut = result.toMutableList()
+            stops.postValue(mut)
         }
     }
 
@@ -49,6 +50,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             val result: Route = startRouteUseCase(unlockedBike.value!!)
             route.postValue(result)
+            reserved.postValue(false)
         }
     }
 
@@ -59,11 +61,13 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun reserveBike(stop: Stop) {
+    fun reserveBike(stop: Int) {
         viewModelScope.launch {
-            val result: Boolean = reserveBikeUseCase(stop)
-            reserved.postValue(result)
-            //TODO decidir como mostrar una bici reservada
+            val result: Stop = reserveBikeUseCase(stop)
+            val index = stops.value!!.indexOf(result)
+            if (index!=-1) stops.value!![index] = result
+            stops.postValue(stops.value)
+            reserved.postValue(true)
         }
     }
 

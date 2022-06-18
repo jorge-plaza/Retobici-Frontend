@@ -11,5 +11,5 @@ interface BikeAPI {
     suspend fun postUnlockBike(@Path("bike") bike: Int): Response<BikeDTO>
 
     @POST("/retobici/bikes/reserve/{stop}/reserve")
-    suspend fun postReserveBike(@Path("stop") stop: Int): Response<Boolean>
+    suspend fun postReserveBike(@Path("stop") stop: Int): Response<StopDTO>
 }
