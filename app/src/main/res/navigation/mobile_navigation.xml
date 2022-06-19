@@ -41,12 +41,19 @@
         <action
             android:id="@+id/action_qr_scan_to_nav_home"
             app:destination="@id/nav_home" />
+        <action
+            android:id="@+id/action_qr_scan_to_routeSummaryFragment"
+            app:destination="@id/routeSummaryFragment" />
     </fragment>
     <fragment
         android:id="@+id/routeSummaryFragment"
         android:name="es.uva.retobici.frontend.ui.RouteSummaryFragment"
         android:label="@string/route_summary"
-        tools:layout="@layout/fragment_route_summary" />
+        tools:layout="@layout/fragment_route_summary" >
+        <action
+            android:id="@+id/action_routeSummaryFragment_to_nav_home"
+            app:destination="@id/nav_home" />
+    </fragment>
     <fragment
         android:id="@+id/nav_rewards"
         android:label="@string/rewards"

@@ -11,6 +11,7 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.location.Location
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
@@ -97,6 +98,10 @@ import es.uva.retobici.frontend.domain.model.Stop
 //import es.uva.retobici.frontend.turnbyturn.MAPBOX_ACCESS_TOKEN_PLACEHOLDER
 import org.json.JSONObject
 import java.util.*
+import kotlin.time.Duration.Companion.convert
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.DurationUnit
+import kotlin.time.ExperimentalTime
 
 @AndroidEntryPoint
 class HomeFragment : Fragment(), PermissionsListener {
@@ -107,9 +112,15 @@ class HomeFragment : Fragment(), PermissionsListener {
 
     private var _bottomSheetBehavior: BottomSheetBehavior<LinearLayout>? = null
     private var _bottomSheetBehaviorRoute: BottomSheetBehavior<LinearLayout>? = null
+    private var _pointAnnotationManager: PointAnnotationManager? = null
+    private var _annotationApi: AnnotationPlugin? = null
 
     private val bottomSheetBehavior get() = _bottomSheetBehavior!!
     private val bottomSheetBehaviorRoute get() = _bottomSheetBehaviorRoute!!
+    private val pointAnnotationManager get() = _pointAnnotationManager!!
+    private val annotationApi get() = _annotationApi!!
+
+
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -147,8 +158,7 @@ class HomeFragment : Fragment(), PermissionsListener {
      */
     private lateinit var mapboxMap: MapboxMap
 
-    private lateinit var annotationApi: AnnotationPlugin
-    private lateinit var pointAnnotationManager: PointAnnotationManager
+
 
     private val permissionsManager = PermissionsManager(this)
 
@@ -232,11 +242,17 @@ class HomeFragment : Fragment(), PermissionsListener {
         }
 
         homeViewModel.unlockedBike.observe(this.viewLifecycleOwner) { bike ->
-            setRouteWithBike(bike)
+
+        }
+
+        homeViewModel.reserved.observe(this.viewLifecycleOwner){ reservation ->
+            masterActivity.loading(false)
+            setReservationState(reservation)
         }
 
         homeViewModel.route.observe(this.viewLifecycleOwner){ route ->
             if (route == null){
+                Log.d("route", "la ruta es null")
                 //Initial state
                 binding.bottomSheetContentRoute.persistentBottomSheetRoute.visibility = View.GONE
                 binding.recenterLocation.layoutParams
@@ -247,12 +263,18 @@ class HomeFragment : Fragment(), PermissionsListener {
                 binding.bottomSheetContentRoute.persistentBottomSheetRoute.visibility = View.GONE
                 view?.findNavController()?.navigate(com.mapbox.navigation.examples.R.id.action_nav_home_to_routeSummaryFragment)
             }
+            else if (route.final_stop == null && route.points == null){
+                masterActivity.loading(true)
+                setRouteWithBike(homeViewModel.unlockedBike.value!!)
+            }
         }
 
-        homeViewModel.reserved.observe(this.viewLifecycleOwner){ reservation ->
-            masterActivity.loading(false)
-            setReservationState(reservation)
+
+
+        homeViewModel.seconds.observe(this.viewLifecycleOwner){ seconds ->
+            binding.bottomSheetContentRoute.routeDurationTimer.text = experimentalConversion(seconds)
         }
+
         //bottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheetContentStop.persistentBottomSheetStop)
         //bottomSheetBehaviorRoute = BottomSheetBehavior.from(binding.bottomSheetContentRoute.persistentBottomSheetRoute)
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
@@ -301,8 +323,10 @@ class HomeFragment : Fragment(), PermissionsListener {
 
         binding.bottomSheetContentStop.scanQrOnStopButton.setOnClickListener {
             //TODO go to qr scan view to end route
+            view?.findNavController()?.navigate(com.mapbox.navigation.examples.R.id.action_nav_home_to_qr_scan)
         }
 
+        /*
         binding.bottomSheetContentRoute.stopRouteButton.setOnClickListener {
             binding.bottomSheetContentRoute.routeDuration.text
             val elapsedMillis:Long = SystemClock.elapsedRealtime() - binding.bottomSheetContentRoute.routeDuration.base;
@@ -310,9 +334,12 @@ class HomeFragment : Fragment(), PermissionsListener {
             homeViewModel.finishRoute(2,seconds)
         }
 
+         */
+
         //Init annotation api for only use one instance
-        annotationApi = binding.mapView.annotations
-        pointAnnotationManager = annotationApi.createPointAnnotationManager()
+        _annotationApi = binding.mapView.annotations
+        _pointAnnotationManager = annotationApi?.createPointAnnotationManager()
+
 
         mapboxMap = binding.mapView.getMapboxMap()
 
@@ -424,7 +451,7 @@ class HomeFragment : Fragment(), PermissionsListener {
             binding.bottomSheetContentRoute.iconBattery.visibility = View.GONE
         }
         bottomSheetBehaviorRoute.state = BottomSheetBehavior.STATE_EXPANDED
-        binding.bottomSheetContentRoute.routeDuration.start()
+        //binding.bottomSheetContentRoute.routeDuration.start()
     }
 
     private fun setupGesturesListener() {
@@ -482,6 +509,8 @@ class HomeFragment : Fragment(), PermissionsListener {
         _binding = null
         _bottomSheetBehavior = null
         _bottomSheetBehaviorRoute = null
+        _pointAnnotationManager = null
+        _annotationApi = null
     }
 
     override fun onStart() {
@@ -584,10 +613,10 @@ class HomeFragment : Fragment(), PermissionsListener {
                     .withIconImage(it)
                     .withIconAnchor(IconAnchor.BOTTOM)
             }
-            pointAnnotationManager.deleteAll()
-            pointAnnotationManager.create(listWithIcons)
+            pointAnnotationManager?.deleteAll()
+            pointAnnotationManager?.create(listWithIcons)
 
-            pointAnnotationManager.addClickListener{ stopClicked ->
+            pointAnnotationManager?.addClickListener{ stopClicked ->
                 val cameraPosition = CameraOptions.Builder()
                     .zoom(14.5)
                     .center(stopClicked.geometry)
@@ -602,7 +631,7 @@ class HomeFragment : Fragment(), PermissionsListener {
                 setStopInfo(stopClicked)
 
                 true
-            }
+            } ?: Log.d("pointAnnotationManager", "pointannotationmanager puede ser null algo falla")
         }
     }
 
@@ -678,6 +707,12 @@ class HomeFragment : Fragment(), PermissionsListener {
 
     private fun View.toggleViewty() {
         visibility = if (visibility == View.VISIBLE) View.GONE else View.VISIBLE
+    }
+
+    @OptIn(ExperimentalTime::class)
+    fun experimentalConversion(seconds: Int?): String{
+        val converted = seconds?.let { convert(it.toDouble(), DurationUnit.SECONDS, DurationUnit.MINUTES).minutes }
+        return converted.toString()
     }
 
 }

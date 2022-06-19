@@ -1,15 +1,17 @@
 package es.uva.retobici.frontend.ui.home
 
 import android.util.Log
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import es.uva.retobici.frontend.core.Timer
 import es.uva.retobici.frontend.domain.model.Bike
 import es.uva.retobici.frontend.domain.model.Route
 import es.uva.retobici.frontend.domain.model.Stop
 import es.uva.retobici.frontend.domain.usecase.*
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import javax.inject.Inject
 
 @HiltViewModel
@@ -37,6 +39,8 @@ class HomeViewModel @Inject constructor(
 
     fun clearRoute(){
         route.postValue(null)
+        unlockedBike.postValue(null)
+        seconds.postValue(0)
     }
 
     fun unlockBike(bike: Int){
@@ -46,7 +50,12 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    private lateinit var timer: Timer
+    var seconds = MutableLiveData(0)
+
     fun startRoute() {
+        timer = Timer()
+        seconds = timer.seconds
         viewModelScope.launch {
             val result: Route = startRouteUseCase(unlockedBike.value!!)
             route.postValue(result)
@@ -54,9 +63,10 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun finishRoute(stop: Int, duration: Int){
+    fun finishRoute(stop: Int){
+        timer.cancelTimer()
         viewModelScope.launch {
-            val result: Route = endRouteUseCase(route.value!!, stop, duration)
+            val result: Route = endRouteUseCase(route.value!!, stop, seconds.value!!)
             route.postValue(result)
         }
     }

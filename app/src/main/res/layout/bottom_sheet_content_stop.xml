@@ -108,7 +108,8 @@
     </LinearLayout>
     <com.google.android.material.divider.MaterialDivider
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        app:dividerInsetEnd="25dp"/>
     <LinearLayout
         android:id="@+id/electric_bike_layout"
         android:layout_width="match_parent"
@@ -147,7 +148,8 @@
     </LinearLayout>
     <com.google.android.material.divider.MaterialDivider
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        app:dividerInsetEnd="25dp"/>
     <LinearLayout
         android:id="@+id/bike_stop_layout"
         android:layout_width="match_parent"

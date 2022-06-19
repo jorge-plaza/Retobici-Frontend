@@ -31,7 +31,7 @@ class RouteSummaryFragment : Fragment() {
         _binding = FragmentRouteSummaryBinding.inflate(inflater, container, false)
         homeViewModel.route.observe(this.viewLifecycleOwner){ route ->
             if (route == null){
-                view?.findNavController()?.navigateUp()
+                view?.findNavController()?.navigate(com.mapbox.navigation.examples.R.id.action_routeSummaryFragment_to_nav_home)
             }
             else showRouteInfo(route)
         }
@@ -40,6 +40,11 @@ class RouteSummaryFragment : Fragment() {
             homeViewModel.clearRoute()
         }
         return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     private fun showRouteInfo(route: Route) {
