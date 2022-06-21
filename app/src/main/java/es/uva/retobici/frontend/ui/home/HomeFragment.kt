@@ -56,6 +56,7 @@ import es.uva.retobici.frontend.MasterActivity
 import es.uva.retobici.frontend.domain.model.Bike
 import es.uva.retobici.frontend.domain.model.ElectricBike
 import es.uva.retobici.frontend.domain.model.Stop
+import es.uva.retobici.frontend.ui.ReservationState
 import es.uva.retobici.frontend.ui.RouteState
 //import es.uva.retobici.frontend.turnbyturn.MAPBOX_ACCESS_TOKEN_PLACEHOLDER
 import org.json.JSONObject
@@ -203,15 +204,16 @@ class HomeFragment : Fragment(), PermissionsListener {
             addAnnotationToMap(stops)
         }
 
-        /*
-        homeViewModel.reserved.observe(this.viewLifecycleOwner){ reservation ->
-            setReservationState(reservation)
-        }*/
-
-        homeViewModel.bikeReserved.observe(viewLifecycleOwner){ event ->
-            event.getContentIfNotHandled()?.let { // Only proceed if the event has never been handled
-                setReservationState(it)
+        homeViewModel.reserved.observe(viewLifecycleOwner){ reservationState ->
+            when(reservationState){
+                is ReservationState.NoReserve -> { isReserved = false }
+                is ReservationState.ActiveReservation -> {
+                    bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+                    showSnackBar("Tienes una bici reservada por 10 minutos")
+                    isReserved = true
+                }
             }
+            requireActivity().invalidateOptionsMenu()
         }
 
 
@@ -229,19 +231,6 @@ class HomeFragment : Fragment(), PermissionsListener {
                 }
                 is RouteState.FinishedRoute -> {}
             }
-            /*
-            if (route == null){
-                //Initial state
-
-            }else if (route.final_stop != null && route.points != null) {
-                //When the route is started
-
-            }
-            else if (route.final_stop == null && route.points == null){
-                masterActivity.loading(true)
-                setRouteWithBike(homeViewModel.unlockedBike.value!!)
-            }
-            */
         }
 
 
@@ -250,8 +239,6 @@ class HomeFragment : Fragment(), PermissionsListener {
             binding.bottomSheetContentRoute.routeDurationTimer.text = experimentalConversion(seconds)
         }
 
-        //bottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheetContentStop.persistentBottomSheetStop)
-        //bottomSheetBehaviorRoute = BottomSheetBehavior.from(binding.bottomSheetContentRoute.persistentBottomSheetRoute)
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
         bottomSheetBehaviorRoute.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
             override fun onSlide(bottomSheet: View, slideOffset: Float) {}

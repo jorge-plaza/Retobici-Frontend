@@ -1,5 +1,6 @@
 package es.uva.retobici.frontend.ui.home
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -12,6 +13,7 @@ import es.uva.retobici.frontend.domain.model.Route
 import es.uva.retobici.frontend.domain.model.Stop
 import es.uva.retobici.frontend.domain.usecase.*
 import es.uva.retobici.frontend.ui.QrBikeState
+import es.uva.retobici.frontend.ui.ReservationState
 import es.uva.retobici.frontend.ui.RouteState
 import kotlinx.coroutines.*
 import javax.inject.Inject
@@ -27,14 +29,10 @@ class HomeViewModel @Inject constructor(
 
     val stops = MutableLiveData<MutableList<Stop>>()
     val bikeAvailable = MutableLiveData<QrBikeState>()
-    val route = MutableLiveData<RouteState>()
+    val route = MutableLiveData<RouteState>(RouteState.NoRoute)
+    val reserved = MutableLiveData<ReservationState>(ReservationState.NoReserve)
 
-    val reserved = MutableLiveData<Boolean>()
     val loading = MutableLiveData(false)
-
-    private val _bikeReserved = MutableLiveData<Event<Boolean>>()
-    val bikeReserved : LiveData<Event<Boolean>> get() = _bikeReserved
-
     /** When the viewModel is created in the Fragment the All the Stops are loaded*/
     init {
         loading.value = true
@@ -69,11 +67,11 @@ class HomeViewModel @Inject constructor(
         loading.postValue(true)
         timer = Timer()
         seconds = timer.seconds
+        reserved.postValue(ReservationState.NoReserve)
         viewModelScope.launch {
             with(bikeAvailable.value as QrBikeState.QrScanned){
                 val result: Route = startRouteUseCase(this.bike)
                 route.postValue(RouteState.ActiveRoute(result))
-                reserved.postValue(false)
                 loading.postValue(false)
             }
         }
@@ -95,12 +93,11 @@ class HomeViewModel @Inject constructor(
     fun reserveBike(stop: Int) {
         loading.value = true
         viewModelScope.launch {
-            val result: Stop = reserveBikeUseCase(stop, "electric")
+            val result: Stop = reserveBikeUseCase(stop, "pedalbike")
             val index = stops.value!!.indexOf(result)
             if (index!=-1) stops.value!![index] = result
             stops.postValue(stops.value)
-            _bikeReserved.value = Event(true)
-            reserved.postValue(true)
+            reserved.postValue(ReservationState.ActiveReservation(result))
             loading.postValue(false)
         }
     }
@@ -111,10 +108,10 @@ class HomeViewModel @Inject constructor(
 
     fun performRoute(stop: Int?) {
         when(route.value){
-            null -> {startRoute()}
             is RouteState.NoRoute -> { startRoute() }
             is RouteState.ActiveRoute -> { finishRoute(stop!!) }
             is RouteState.FinishedRoute -> { clearRoute() }
+            null -> { startRoute() }
         }
     }
 
