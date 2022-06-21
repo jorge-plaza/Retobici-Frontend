@@ -59,5 +59,10 @@
         android:label="@string/rewards"
         android:name="es.uva.retobici.frontend.ui.RewardsFragment"
         tools:layout="@layout/fragment_rewards" />
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="es.uva.retobici.frontend.ui.ui.login.LoginFragment"
+        android:label="fragment_login"
+        tools:layout="@layout/fragment_login" />
 
 </navigation>

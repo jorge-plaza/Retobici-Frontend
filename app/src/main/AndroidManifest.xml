@@ -9,6 +9,7 @@
         android:required="false"/>
 
     <application
+        android:usesCleartextTraffic="true"
         android:name="es.uva.retobici.frontend.ApplicationHilt"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
