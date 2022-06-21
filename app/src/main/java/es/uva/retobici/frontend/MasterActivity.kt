@@ -27,6 +27,7 @@ import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.navigation.examples.databinding.ActivityMasterBinding
 import com.mapbox.navigation.examples.R
 import dagger.hilt.android.AndroidEntryPoint
+import es.uva.retobici.frontend.data.UserPreferences
 import es.uva.retobici.utilities.LocationListeningCallback
 
 @AndroidEntryPoint
@@ -34,12 +35,15 @@ class MasterActivity : AppCompatActivity(), PermissionsListener {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMasterBinding
+    private lateinit var userPreferences: UserPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityMasterBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+
 
         setSupportActionBar(binding.appBarMaster.topAppBar)
 

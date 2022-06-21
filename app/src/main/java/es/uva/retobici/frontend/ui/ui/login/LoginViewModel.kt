@@ -32,16 +32,13 @@ class LoginViewModel @Inject constructor(
     fun login(username: String, password: String) {
         // can be launched in a separate asynchronous job
         viewModelScope.launch {
-            val result:User = loginUseCase(username, password)
-            /*
+            val result:Result<User> = loginUseCase(username, password)
             if (result is Result.Success) {
                 _loginResult.value =
-                    LoginResult(success = LoggedInUserView(displayName = result.data.displayName))
+                    LoginResult(success =  result.data)
             } else {
                 _loginResult.value = LoginResult(error = R.string.login_failed)
             }
-
-             */
         }
 
     }

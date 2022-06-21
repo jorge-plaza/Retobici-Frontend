@@ -16,12 +16,16 @@ import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.lifecycleScope
 import com.mapbox.navigation.examples.databinding.FragmentLoginBinding
 
 import com.mapbox.navigation.examples.R
 import dagger.hilt.android.AndroidEntryPoint
 import es.uva.retobici.frontend.MasterActivity
+import es.uva.retobici.frontend.data.UserPreferences
 import es.uva.retobici.frontend.ui.RewardsViewModel
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class LoginFragment : Fragment() {
@@ -30,6 +34,7 @@ class LoginFragment : Fragment() {
     private val binding get() = _binding!!
     private val loginViewModel: LoginViewModel by activityViewModels()
     private lateinit var masterActivity: MasterActivity
+    private lateinit var userPreferences: UserPreferences
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -39,7 +44,7 @@ class LoginFragment : Fragment() {
 
         _binding = FragmentLoginBinding.inflate(inflater, container, false)
         masterActivity = activity as MasterActivity
-
+        userPreferences = UserPreferences(context = requireContext())
         return binding.root
 
     }
@@ -51,6 +56,10 @@ class LoginFragment : Fragment() {
         val passwordEditText = binding.password
         val loginButton = binding.login
         val loadingProgressBar = binding.loading
+
+        userPreferences.authToken.asLiveData().observe(viewLifecycleOwner){ token ->
+            Toast.makeText(requireContext(), token ?: "no hay token aun", Toast.LENGTH_SHORT).show()
+        }
 
         loginViewModel.loginFormState.observe(viewLifecycleOwner,
             Observer { loginFormState ->
@@ -74,7 +83,10 @@ class LoginFragment : Fragment() {
                     showLoginFailed(it)
                 }
                 loginResult.success?.let {
-                    updateUiWithUser(it)
+                    lifecycleScope.launch {
+                        userPreferences.saveAuthToken(it.token)
+                    }
+                    //updateUiWithUser(it)
                 }
             })
 
