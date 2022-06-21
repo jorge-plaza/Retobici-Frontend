@@ -86,7 +86,7 @@
     </LinearLayout>
 
     <Button
-        android:id="@+id/start_route_button"
+        android:id="@+id/route_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/scanned_bike_layout"
@@ -95,16 +95,5 @@
         android:enabled="false"
         android:text="@string/start_route" />
 
-    <Button
-        android:id="@+id/end_route_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="30dp"
-        android:layout_below="@id/scanned_bike_layout"
-        android:layout_centerHorizontal="true"
-        android:enabled="false"
-        android:text="@string/end_route"
-        android:visibility="gone"
-        />
 
 </RelativeLayout>

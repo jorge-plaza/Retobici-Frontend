@@ -9,9 +9,9 @@ import retrofit2.http.POST
 import retrofit2.http.Path
 
 interface RewardAPI {
-    @GET("/retobici/rewards")
+    @GET("/rewards")
     suspend fun getAllRewards(): Response<List<RewardDTO>>
 
-    @POST("/retobici/rewards/{reward}/obtain/")
+    @POST("/rewards/{reward}")
     suspend fun postObtainReward(@Path("reward") reward: Int): Response<RewardDTO>
 }

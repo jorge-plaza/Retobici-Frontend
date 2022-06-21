@@ -14,13 +14,13 @@ class RouteRemoteDataSource @Inject constructor(
 ): RouteRepository {
     override suspend fun startRoute(bike: Bike): Route {
         return withContext(Dispatchers.IO){
-            val response = api.postStartRoute(1, bike.id)
+            val response = api.postStartRoute(1, bike.bike_id)
             response.body()!!.toRouteModel()
         }
     }
     override suspend fun finishRoute(route: Route): Route {
         return withContext(Dispatchers.IO){
-            val response = api.postFinishRoute(route.id, route)
+            val response = api.postFinishRoute(route)
             // ?: if response is null empty list
             //response.body()?.map { it.toStopModel() } ?: emptyList()
             //TODO check the nullable response

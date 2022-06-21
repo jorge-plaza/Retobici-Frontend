@@ -24,11 +24,4 @@ class BikeRemoteDataSource @Inject constructor(
         }
     }
 
-    override suspend fun reserveBike(stop: Int): Stop {
-        return withContext(Dispatchers.IO) {
-            val response = api.postReserveBike(stop)
-            response.body()!!.toStopModel()
-        }
-    }
-
 }

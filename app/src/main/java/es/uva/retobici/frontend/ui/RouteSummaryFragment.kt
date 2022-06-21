@@ -30,10 +30,13 @@ class RouteSummaryFragment : Fragment() {
     ): View {
         _binding = FragmentRouteSummaryBinding.inflate(inflater, container, false)
         homeViewModel.route.observe(this.viewLifecycleOwner){ route ->
-            if (route == null){
-                view?.findNavController()?.navigate(com.mapbox.navigation.examples.R.id.action_routeSummaryFragment_to_nav_home)
+            when(route){
+                is RouteState.NoRoute -> {
+                    view?.findNavController()?.navigate(com.mapbox.navigation.examples.R.id.action_routeSummaryFragment_to_nav_home)
+                }
+                is RouteState.ActiveRoute -> {}
+                is RouteState.FinishedRoute -> showRouteInfo(route.route)
             }
-            else showRouteInfo(route)
         }
 
         binding.finishRouteButton.setOnClickListener {

@@ -1,35 +1,24 @@
 package es.uva.retobici.frontend.ui.home
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
-import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.location.Location
 import android.os.Bundle
-import android.os.CountDownTimer
-import android.os.Looper
-import android.os.SystemClock
 import android.util.Log
 import android.view.*
-import android.widget.Chronometer
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.appcompat.content.res.AppCompatResources
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.ui.graphics.Color
-import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.view.get
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.navigation.findNavController
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -38,7 +27,6 @@ import com.google.android.material.snackbar.Snackbar
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.android.gestures.MoveGestureDetector
-import com.mapbox.bindgen.Expected
 import com.mapbox.geojson.Point
 import com.mapbox.maps.*
 import com.mapbox.maps.extension.style.layers.properties.generated.IconAnchor
@@ -57,44 +45,18 @@ import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListen
 import com.mapbox.maps.plugin.locationcomponent.location
 import com.mapbox.maps.viewannotation.viewAnnotationOptions
 import com.mapbox.navigation.R
-import com.mapbox.navigation.core.MapboxNavigation
 import com.mapbox.navigation.core.MapboxNavigationProvider
-import com.mapbox.navigation.core.directions.session.RoutesObserver
 import com.mapbox.navigation.core.replay.MapboxReplayer
 import com.mapbox.navigation.core.replay.ReplayLocationEngine
 import com.mapbox.navigation.core.replay.route.ReplayProgressObserver
-import com.mapbox.navigation.core.trip.session.LocationMatcherResult
-import com.mapbox.navigation.core.trip.session.LocationObserver
-import com.mapbox.navigation.core.trip.session.RouteProgressObserver
-import com.mapbox.navigation.core.trip.session.VoiceInstructionsObserver
 import com.mapbox.navigation.examples.databinding.AnnotationViewNumberStopBinding
 import com.mapbox.navigation.examples.databinding.FragmentHomeBinding
-import com.mapbox.navigation.ui.base.util.MapboxNavigationConsumer
-import com.mapbox.navigation.ui.maneuver.api.MapboxManeuverApi
-import com.mapbox.navigation.ui.maneuver.view.MapboxManeuverView
-import com.mapbox.navigation.ui.maps.camera.NavigationCamera
-import com.mapbox.navigation.ui.maps.camera.data.MapboxNavigationViewportDataSource
-import com.mapbox.navigation.ui.maps.camera.transition.NavigationCameraTransitionOptions
-import com.mapbox.navigation.ui.maps.location.NavigationLocationProvider
-import com.mapbox.navigation.ui.maps.route.arrow.api.MapboxRouteArrowApi
-import com.mapbox.navigation.ui.maps.route.arrow.api.MapboxRouteArrowView
-import com.mapbox.navigation.ui.maps.route.line.api.MapboxRouteLineApi
-import com.mapbox.navigation.ui.maps.route.line.api.MapboxRouteLineView
-import com.mapbox.navigation.ui.maps.route.line.model.RouteLine
-import com.mapbox.navigation.ui.tripprogress.api.MapboxTripProgressApi
-import com.mapbox.navigation.ui.tripprogress.model.*
-import com.mapbox.navigation.ui.tripprogress.view.MapboxTripProgressView
-import com.mapbox.navigation.ui.voice.api.MapboxSpeechApi
-import com.mapbox.navigation.ui.voice.api.MapboxVoiceInstructionsPlayer
-import com.mapbox.navigation.ui.voice.model.SpeechAnnouncement
-import com.mapbox.navigation.ui.voice.model.SpeechError
-import com.mapbox.navigation.ui.voice.model.SpeechValue
-import com.mapbox.navigation.ui.voice.model.SpeechVolume
 import dagger.hilt.android.AndroidEntryPoint
 import es.uva.retobici.frontend.MasterActivity
 import es.uva.retobici.frontend.domain.model.Bike
 import es.uva.retobici.frontend.domain.model.ElectricBike
 import es.uva.retobici.frontend.domain.model.Stop
+import es.uva.retobici.frontend.ui.RouteState
 //import es.uva.retobici.frontend.turnbyturn.MAPBOX_ACCESS_TOKEN_PLACEHOLDER
 import org.json.JSONObject
 import java.util.*
@@ -233,40 +195,53 @@ class HomeFragment : Fragment(), PermissionsListener {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         _bottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheetContentStop.persistentBottomSheetStop)
         _bottomSheetBehaviorRoute = BottomSheetBehavior.from(binding.bottomSheetContentRoute.persistentBottomSheetRoute)
-        masterActivity.loading(true)
+
+        homeViewModel.loading.observe(this.viewLifecycleOwner){ masterActivity.loading(it) }
 
         homeViewModel.stops.observe(this.viewLifecycleOwner) { stops ->
             //TODO check the await or something that checks if the maps have been created
             addAnnotationToMap(stops)
-            masterActivity.loading(false)
         }
 
-        homeViewModel.unlockedBike.observe(this.viewLifecycleOwner) { bike ->
-
-        }
-
+        /*
         homeViewModel.reserved.observe(this.viewLifecycleOwner){ reservation ->
-            masterActivity.loading(false)
             setReservationState(reservation)
+        }*/
+
+        homeViewModel.bikeReserved.observe(viewLifecycleOwner){ event ->
+            event.getContentIfNotHandled()?.let { // Only proceed if the event has never been handled
+                setReservationState(it)
+            }
         }
 
-        homeViewModel.route.observe(this.viewLifecycleOwner){ route ->
+
+
+        homeViewModel.route.observe(this.viewLifecycleOwner){ routeState ->
+            when(routeState){
+                is RouteState.NoRoute -> {
+                    binding.bottomSheetContentRoute.persistentBottomSheetRoute.visibility = View.GONE
+                    //Hide top icon
+                    setOnRouteState(false)
+                }
+                is RouteState.ActiveRoute -> {
+                    masterActivity.loading(true)
+                    setRouteWithBike(routeState.route.bike)
+                }
+                is RouteState.FinishedRoute -> {}
+            }
+            /*
             if (route == null){
-                Log.d("route", "la ruta es null")
                 //Initial state
-                binding.bottomSheetContentRoute.persistentBottomSheetRoute.visibility = View.GONE
-                binding.recenterLocation.layoutParams
-                //Hide top icon
-                setOnRouteState(false)
+
             }else if (route.final_stop != null && route.points != null) {
                 //When the route is started
-                binding.bottomSheetContentRoute.persistentBottomSheetRoute.visibility = View.GONE
-                view?.findNavController()?.navigate(com.mapbox.navigation.examples.R.id.action_nav_home_to_routeSummaryFragment)
+
             }
             else if (route.final_stop == null && route.points == null){
                 masterActivity.loading(true)
                 setRouteWithBike(homeViewModel.unlockedBike.value!!)
             }
+            */
         }
 
 
@@ -304,7 +279,6 @@ class HomeFragment : Fragment(), PermissionsListener {
                     button.isEnabled = true
                     button.text = "Reservar Bici"
                     button.setOnClickListener {
-                        masterActivity.loading(true)
                         homeViewModel.reserveBike(stopID.text.toString().toInt())
                     }
                 }else{
@@ -442,7 +416,7 @@ class HomeFragment : Fragment(), PermissionsListener {
         setOnRouteState(true)
         binding.bottomSheetContentStop.persistentBottomSheetStop.visibility = View.GONE
         binding.bottomSheetContentRoute.persistentBottomSheetRoute.visibility = View.VISIBLE
-        binding.bottomSheetContentRoute.bikeId.text = bike.id.toString()
+        binding.bottomSheetContentRoute.bikeId.text = bike.bike_id.toString()
         if (bike is ElectricBike){
             val batteryLevel = bike.battery.toString()
             binding.bottomSheetContentRoute.bikeBattery.text = "$batteryLevel %"

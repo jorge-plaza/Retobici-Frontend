@@ -6,7 +6,7 @@ import es.uva.retobici.frontend.domain.model.ElectricBike
 import es.uva.retobici.frontend.domain.model.PedalBike
 
 data class BikeDTO(
-    @SerializedName("id") val id: Int,
+    @SerializedName("bike_id") val id: Int,
     @SerializedName("unlocked") val unlocked: Boolean,
     @SerializedName("battery") val battery: Float?,
 )
