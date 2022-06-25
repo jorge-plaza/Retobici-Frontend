@@ -1,16 +1,19 @@
 package es.uva.retobici.frontend.data.repositories
 
 import android.util.Log
+import es.uva.retobici.frontend.data.UserPreferences
 import es.uva.retobici.frontend.data.source.api.UserAPI
 import es.uva.retobici.frontend.data.source.dto.toUserAuthenticated
 import es.uva.retobici.frontend.domain.model.User
 import es.uva.retobici.frontend.domain.repository.UserRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class UserRemoteDataSource @Inject constructor(
-    private val api:UserAPI
+    private val api:UserAPI,
+    private val userPreferences: UserPreferences
 ): UserRepository {
     override suspend fun login(email: String, password:String): User {
         return withContext(Dispatchers.IO){
@@ -19,8 +22,12 @@ class UserRemoteDataSource @Inject constructor(
         }
     }
 
-    override suspend fun logout(): User {
-        TODO("Not yet implemented")
+    override suspend fun logout(): Boolean {
+        return withContext(Dispatchers.IO){
+            val token = userPreferences.authToken.first()
+            val response = api.logout(token!!)
+            response.body()!!
+        }
     }
 
 }

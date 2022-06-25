@@ -18,6 +18,7 @@ import android.widget.Toast
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.findNavController
 import com.mapbox.navigation.examples.databinding.FragmentLoginBinding
 
 import com.mapbox.navigation.examples.R
@@ -34,7 +35,6 @@ class LoginFragment : Fragment() {
     private val binding get() = _binding!!
     private val loginViewModel: LoginViewModel by activityViewModels()
     private lateinit var masterActivity: MasterActivity
-    private lateinit var userPreferences: UserPreferences
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -44,7 +44,7 @@ class LoginFragment : Fragment() {
 
         _binding = FragmentLoginBinding.inflate(inflater, container, false)
         masterActivity = activity as MasterActivity
-        userPreferences = UserPreferences(context = requireContext())
+        //userPreferences = UserPreferences(context = requireContext())
         return binding.root
 
     }
@@ -55,11 +55,8 @@ class LoginFragment : Fragment() {
         val usernameEditText = binding.email
         val passwordEditText = binding.password
         val loginButton = binding.login
-        val loadingProgressBar = binding.loading
 
-        userPreferences.authToken.asLiveData().observe(viewLifecycleOwner){ token ->
-            Toast.makeText(requireContext(), token ?: "no hay token aun", Toast.LENGTH_SHORT).show()
-        }
+        loginViewModel.loading.observe(viewLifecycleOwner){ masterActivity.loading(it) }
 
         loginViewModel.loginFormState.observe(viewLifecycleOwner,
             Observer { loginFormState ->
@@ -78,15 +75,12 @@ class LoginFragment : Fragment() {
         loginViewModel.loginResult.observe(viewLifecycleOwner,
             Observer { loginResult ->
                 loginResult ?: return@Observer
-                loadingProgressBar.visibility = View.GONE
                 loginResult.error?.let {
                     showLoginFailed(it)
                 }
                 loginResult.success?.let {
-                    lifecycleScope.launch {
-                        userPreferences.saveAuthToken(it.token)
-                    }
-                    //updateUiWithUser(it)
+                    view.findNavController().navigateUp()
+                    loginViewModel.saveAuthToken(it.token)
                 }
             })
 
@@ -119,7 +113,6 @@ class LoginFragment : Fragment() {
         }
 
         loginButton.setOnClickListener {
-            loadingProgressBar.visibility = View.VISIBLE
             loginViewModel.login(
                 usernameEditText.text.toString(),
                 passwordEditText.text.toString()

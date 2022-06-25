@@ -7,7 +7,11 @@ import retrofit2.Response
 import retrofit2.http.*
 
 interface BikeAPI {
+
     @POST("/bikes/unlock/{bike}/")
-    suspend fun postUnlockBike(@Path("bike") bike: Int): Response<BikeDTO>
+    suspend fun postUnlockBike(
+        @Path("bike") bike: Int,
+        @Header("Authorization") token: String
+    ): Response<BikeDTO>
 
 }

@@ -96,11 +96,11 @@
     <string name="default_bike_id">0001</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="route_completed">Ruta Completada</string>
-    <string name="check">check ok</string>
+    <string name="check">check OK</string>
     <string name="default_distance">500 metros</string>
     <string name="default_duration">10 min</string>
     <string name="default_points">100 puntos</string>
-    <string name="ok">ok</string>
+    <string name="ok">OK</string>
     <string name="finish">Finalizar</string>
     <string name="reward_description_media">reward image</string>
     <string name="content_description_media">rewardimage</string>
@@ -126,5 +126,8 @@
     <string name="invalid_password">Password must be >5 characters</string>
     <string name="login_failed">"Login failed"</string>
     <string name="login">Iniciar Sesión</string>
+    <string name="User_not_loggedin">No hay sesión de usuario activa</string>
+    <string name="user_not_logged_desc">Inicie sesión para poder acceder a todas las funcionalidades</string>
+    <string name="logout">Cerrar Sesión</string>
 
 </resources>

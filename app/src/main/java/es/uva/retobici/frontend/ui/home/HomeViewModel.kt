@@ -8,9 +8,11 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import es.uva.retobici.frontend.core.Event
 import es.uva.retobici.frontend.core.Timer
+import es.uva.retobici.frontend.data.UserPreferences
 import es.uva.retobici.frontend.domain.model.Bike
 import es.uva.retobici.frontend.domain.model.Route
 import es.uva.retobici.frontend.domain.model.Stop
+import es.uva.retobici.frontend.domain.model.User
 import es.uva.retobici.frontend.domain.usecase.*
 import es.uva.retobici.frontend.ui.QrBikeState
 import es.uva.retobici.frontend.ui.ReservationState
@@ -25,7 +27,11 @@ class HomeViewModel @Inject constructor(
     private val startRouteUseCase: StartRouteUseCase,
     private val endRouteUseCase: EndRouteUseCase,
     private val reserveBikeUseCase: ReserveBikeUseCase,
+
+    private val userPreferences: UserPreferences
 ) : ViewModel() {
+    val userEmail = MutableLiveData<String>()
+    val userPoints = MutableLiveData<Int>()
 
     val stops = MutableLiveData<MutableList<Stop>>()
     val bikeAvailable = MutableLiveData<QrBikeState>()
@@ -41,6 +47,8 @@ class HomeViewModel @Inject constructor(
             val mut = result.toMutableList()
             stops.postValue(mut)
             loading.postValue(false)
+            userPreferences.email.collect{ userEmail.postValue(it) }
+            userPreferences.points.collect{ userPoints.postValue(it) }
         }
     }
 
@@ -81,7 +89,7 @@ class HomeViewModel @Inject constructor(
         loading.postValue(true)
         timer.cancelTimer()
         viewModelScope.launch {
-            var result: Route? = null
+            var result: Route?
             with(route.value as RouteState.ActiveRoute){
                 result= endRouteUseCase(this.route, stop, seconds.value!!)
             }

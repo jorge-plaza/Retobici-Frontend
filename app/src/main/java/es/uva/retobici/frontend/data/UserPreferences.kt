@@ -1,23 +1,24 @@
 package es.uva.retobici.frontend.data
 
-import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.dataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
+import androidx.datastore.preferences.core.intPreferencesKey
+import es.uva.retobici.frontend.domain.model.User
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
 
-class UserPreferences(context: Context) {
-
-    val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user")
-    private val applicationContext = context.applicationContext
-    private val dataStore = applicationContext.dataStore
+class UserPreferences @Inject constructor(
+    private val dataStore: DataStore<Preferences>
+) {
 
     companion object{
         val AUTH_TOKEN = stringPreferencesKey("auth_token")
+        val USER_EMAIL = stringPreferencesKey("user_email")
+        val USER_POINTS = intPreferencesKey("user_points")
     }
 
     suspend fun saveAuthToken(token: String){
@@ -26,8 +27,33 @@ class UserPreferences(context: Context) {
         }
     }
 
+    suspend fun saveUserInfo(user: User) {
+        dataStore.edit { preferences ->
+            preferences[USER_EMAIL] = user.email
+            preferences[USER_POINTS] = user.points
+        }
+    }
+
+    suspend fun cleanUser() {
+        dataStore.edit { preferences ->
+            preferences[USER_POINTS] = -1
+            preferences[USER_EMAIL] = "invalid"
+            preferences[AUTH_TOKEN] = "invalid"
+        }
+    }
+
     val authToken: Flow<String?>
     get() = dataStore.data.map { preferences ->
         preferences[AUTH_TOKEN]
     }
+
+    val points: Flow<Int?>
+        get() = dataStore.data.map { preferences ->
+            preferences[USER_POINTS]
+        }
+
+    val email: Flow<String?>
+        get() = dataStore.data.map { preferences ->
+            preferences[USER_EMAIL]
+        }
 }

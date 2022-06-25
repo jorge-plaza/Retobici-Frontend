@@ -4,10 +4,7 @@ import es.uva.retobici.frontend.data.source.dto.AuthDTO
 import es.uva.retobici.frontend.data.source.dto.RouteDTO
 import es.uva.retobici.frontend.data.source.dto.UserDTO
 import retrofit2.Response
-import retrofit2.http.Field
-import retrofit2.http.FormUrlEncoded
-import retrofit2.http.POST
-import retrofit2.http.PUT
+import retrofit2.http.*
 
 interface UserAPI {
     @FormUrlEncoded
@@ -16,4 +13,7 @@ interface UserAPI {
         @Field("email") email: String,
         @Field("password") password: String,
     ): Response<AuthDTO>
+
+    @POST("/logout")
+    suspend fun logout(@Header("Authorization") token: String): Response<Boolean>
 }

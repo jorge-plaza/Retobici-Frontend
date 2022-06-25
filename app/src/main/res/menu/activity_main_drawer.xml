@@ -15,10 +15,6 @@
             android:id="@+id/nav_rewards"
             android:icon="@drawable/ic_baseline_card_giftcard_24"
             android:title="@string/drawer_item_recompensas" />
-        <item
-            android:id="@+id/loginFragment"
-            android:icon="@drawable/ic_baseline_login_24"
-            android:title="@string/login" />
         <!--<item
             android:id="@+id/drawer_item_rutas"
             android:icon="@drawable/ic_baseline_map_24"
@@ -28,14 +24,10 @@
     </group>
 
     <group android:checkableBehavior="single">
-
         <item
-            android:id="@+id/nav_gallery"
-            android:icon="@drawable/ic_menu_gallery"
-            android:title="@string/menu_gallery" />
-        <item
-            android:id="@+id/nav_slideshow"
-            android:icon="@drawable/ic_menu_slideshow"
-            android:title="@string/menu_slideshow" />
+            android:id="@+id/loginFragment"
+            android:icon="@drawable/ic_baseline_login_24"
+            android:title="@string/login"
+            />
     </group>
 </menu>

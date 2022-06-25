@@ -13,6 +13,7 @@ import com.mapbox.navigation.examples.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import es.uva.retobici.frontend.domain.model.Reward
 import es.uva.retobici.frontend.domain.model.User
+import es.uva.retobici.frontend.domain.usecase.LogOutUseCase
 import es.uva.retobici.frontend.domain.usecase.LoginUseCase
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -21,6 +22,7 @@ import javax.inject.Inject
 class LoginViewModel @Inject constructor(
     //private val loginRepository: LoginRepository,
     private val loginUseCase: LoginUseCase,
+    private val logOutUseCase: LogOutUseCase
     ) : ViewModel() {
 
     private val _loginForm = MutableLiveData<LoginFormState>()
@@ -29,13 +31,25 @@ class LoginViewModel @Inject constructor(
     private val _loginResult = MutableLiveData<LoginResult>()
     val loginResult: LiveData<LoginResult> = _loginResult
 
+    private val _logoutResult = MutableLiveData<Boolean>()
+    val logoutResult: LiveData<Boolean> = _logoutResult
+
+    val loading = MutableLiveData(false)
+
+    fun saveAuthToken(token: String) = viewModelScope.launch {
+        loginUseCase.saveAuthToken(token)
+    }
+
     fun login(username: String, password: String) {
         // can be launched in a separate asynchronous job
         viewModelScope.launch {
+            loading.value = true
             val result:Result<User> = loginUseCase(username, password)
+            loading.value = false
             if (result is Result.Success) {
-                _loginResult.value =
-                    LoginResult(success =  result.data)
+                _loginResult.value = LoginResult(success =  result.data)
+                loginUseCase.saveAuthToken(result.data.token)
+                loginUseCase.saveUserInfo(result.data)
             } else {
                 _loginResult.value = LoginResult(error = R.string.login_failed)
             }
@@ -65,5 +79,14 @@ class LoginViewModel @Inject constructor(
     // A placeholder password validation check
     private fun isPasswordValid(password: String): Boolean {
         return password.length > 5
+    }
+
+    fun logOut(){
+        viewModelScope.launch {
+            loading.postValue(true)
+            val result = logOutUseCase()
+            loading.postValue(false)
+            _logoutResult.postValue(result)
+        }
     }
 }
