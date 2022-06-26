@@ -295,10 +295,22 @@ class HomeFragment : Fragment(), PermissionsListener {
         }
         binding.bottomSheetContentStop.electricBikeLayout.setOnClickListener {
             //Reserve this type of bike
+            val stopID = binding.bottomSheetContentStop.stopId
             val button = binding.bottomSheetContentStop.reserveBikeButton
-            button.isEnabled = true
-            button.text = "Reservar Bici Eléctrica"
-            button.setOnClickListener { homeViewModel.reserveElectricBike() }
+            val countBikesAvailable = binding.bottomSheetContentStop.countElectricBike.text.toString().toInt()
+            //Only if no reservation the button is accessible
+            if (!isReserved){
+                if (countBikesAvailable>0){
+                    button.isEnabled = true
+                    button.text = "Reservar Bici Eléctrica"
+                    button.setOnClickListener {
+                        homeViewModel.reserveElectricBike(stopID.text.toString().toInt())
+                    }
+                }else{
+                    button.isEnabled = false
+                    button.text = "No hay bicis disponibles"
+                }
+            }
         }
 
         binding.bottomSheetContentStop.scanQrOnStopButton.setOnClickListener {

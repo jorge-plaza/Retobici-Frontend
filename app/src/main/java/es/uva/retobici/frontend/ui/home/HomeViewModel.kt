@@ -119,7 +119,7 @@ class HomeViewModel @Inject constructor(
     fun reserveBike(stop: Int) {
         loading.value = true
         viewModelScope.launch {
-            val result: Stop = reserveBikeUseCase(stop, "pedalbike")
+            val result: Stop = reserveBikeUseCase(stop, "pedal")
             val index = stops.value!!.indexOf(result)
             if (index!=-1) stops.value!![index] = result
             stops.postValue(stops.value)
@@ -128,8 +128,16 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun reserveElectricBike() {
-
+    fun reserveElectricBike(stop: Int) {
+        loading.value = true
+        viewModelScope.launch {
+            val result: Stop = reserveBikeUseCase(stop, "electric")
+            val index = stops.value!!.indexOf(result)
+            if (index!=-1) stops.value!![index] = result
+            stops.postValue(stops.value)
+            reserved.postValue(ReservationState.ActiveReservation(result))
+            loading.postValue(false)
+        }
     }
 
     fun performRoute(stop: Int?) {
