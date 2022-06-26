@@ -6,16 +6,15 @@ import retrofit2.Response
 import retrofit2.http.*
 
 interface RouteAPI {
-    @FormUrlEncoded
-    @PUT("/retobici/routes/")
+    @PUT("routes/{bike}")
     suspend fun postStartRoute(
-        @Field("id_user") id_user: Int,
-        @Field("id_bike") id_bike: Int,
+        @Header("Authorization") token: String,
+        @Path("bike") bike: Int
     ): Response<RouteDTO>
 
-    @POST("/retobici/routes/{route}/finish")
+    @POST("routes/finish")
     suspend fun postFinishRoute(
-        @Path("route") route_id: Int,
+        @Header("Authorization") token: String,
         @Body route: Route
     ): Response<RouteDTO>
 }

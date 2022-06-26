@@ -1,13 +1,16 @@
 package es.uva.retobici.frontend.core.di
 
+import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import es.uva.retobici.frontend.data.source.api.BikeAPI
-import es.uva.retobici.frontend.data.source.api.RewardAPI
-import es.uva.retobici.frontend.data.source.api.RouteAPI
-import es.uva.retobici.frontend.data.source.api.StopAPI
+import es.uva.retobici.frontend.data.source.api.*
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
@@ -21,7 +24,7 @@ class NetworkModule {
     @Provides
     fun providesRetrofit():Retrofit{
         return Retrofit.Builder()
-            .baseUrl("https://c4804667-8963-4bac-9b82-cee4ef549e3a.mock.pstmn.io")
+            .baseUrl("https://13e4-93-57-21-108.eu.ngrok.io/api/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
@@ -60,5 +63,14 @@ class NetworkModule {
     @Provides
     fun providesRewardApi(retrofit: Retrofit): RewardAPI {
         return retrofit.create(RewardAPI::class.java)
+    }
+
+    /**
+     * This is provided because you can not Inject an interface
+     */
+    @Singleton
+    @Provides
+    fun providesUserApi(retrofit: Retrofit): UserAPI {
+        return retrofit.create(UserAPI::class.java)
     }
 }

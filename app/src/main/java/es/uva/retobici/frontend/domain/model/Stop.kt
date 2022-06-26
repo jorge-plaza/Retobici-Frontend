@@ -12,21 +12,27 @@ data class Stop (
     val address: String,
     val totalSpaces: Int,
     val bikes: List<Bike>,
+    val reservedPedalBikes: Int,
+    val reservedElectricBikes: Int,
 ){
     val location: com.mapbox.geojson.Point = com.mapbox.geojson.Point.fromLngLat(lng,lat)
     fun getCountPedalBike(): Int{
-        return bikes.filterIsInstance<PedalBike>().size
+        return bikes.filterIsInstance<PedalBike>().size-reservedPedalBikes
     }
     fun getCountElectricBike(): Int{
-        return bikes.filterIsInstance<ElectricBike>().size
+        return bikes.filterIsInstance<ElectricBike>().size-reservedElectricBikes
     }
     fun getCountBikeStop(): Int{
-        return totalSpaces-bikes.size
+        return totalSpaces-bikes.size-getTotalReservations()
+    }
+    fun getTotalReservations(): Int{
+        return reservedPedalBikes+reservedElectricBikes
     }
 
     fun toJson(): JsonElement{
         val json = """
             {
+                id: "$id",
                 address: "$address",
                 count_bike_pedal: "${getCountPedalBike()}",
                 count_bike_electric: "${getCountElectricBike()}",
@@ -37,6 +43,22 @@ data class Stop (
     }
 
     fun getTotalBikeCount(): Int {
-        return bikes.size
+        return bikes.size - getTotalReservations()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        //Todo check this
+        val otherCast = other as Stop
+        if (this.hashCode() != otherCast.hashCode()) return false
+        return this.id == otherCast.id
+    }
+
+    override fun hashCode(): Int {
+        var result = id
+        result = 31 * result + lng.hashCode()
+        result = 31 * result + lat.hashCode()
+        result = 31 * result + address.hashCode()
+        result = 31 * result + location.hashCode()
+        return result
     }
 }

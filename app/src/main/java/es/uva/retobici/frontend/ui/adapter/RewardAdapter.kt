@@ -9,7 +9,9 @@ import es.uva.retobici.frontend.domain.model.Reward
 
 class RewardAdapter(
     private val rewardsList: List<Reward>,
-    private val onClickListener: (Reward) -> Unit
+    private val authenticated: Boolean,
+    private val points: Int,
+    private val onClickListener: (Reward) -> Unit,
 ) : RecyclerView.Adapter<RewardViewHolder>() {
 
 
@@ -20,7 +22,7 @@ class RewardAdapter(
 
     override fun onBindViewHolder(holder: RewardViewHolder, position: Int) {
         val item = rewardsList[position]
-        holder.render(item, onClickListener)
+        holder.render(item, authenticated, points, onClickListener)
     }
 
     override fun getItemCount(): Int = rewardsList.size

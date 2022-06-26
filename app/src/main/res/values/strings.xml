@@ -87,20 +87,20 @@
     <string name="default_stop_distance">2,2km</string>
     <string name="how_to_approach">Como llegar</string>
     <string name="recenter_user_location_button">"Recentrar mapa en usuario "</string>
-    <string name="start_route">Comenzar ruta</string>
+    <string name="start_route">Escanea el QR para desbloquear</string>
     <string name="ongoing_route">Ruta en Curso</string>
-    <string name="end_route">Finalizar</string>
+    <string name="end_route">Finalizar Ruta</string>
     <string name="default_time">00:00</string>
     <string name="default_battery_level" />
     <string name="fab_content_desc">finish_route</string>
     <string name="default_bike_id">0001</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="route_completed">Ruta Completada</string>
-    <string name="check">check ok</string>
+    <string name="check">check OK</string>
     <string name="default_distance">500 metros</string>
     <string name="default_duration">10 min</string>
     <string name="default_points">100 puntos</string>
-    <string name="ok">ok</string>
+    <string name="ok">OK</string>
     <string name="finish">Finalizar</string>
     <string name="reward_description_media">reward image</string>
     <string name="content_description_media">rewardimage</string>
@@ -110,5 +110,27 @@
     <string name="unlock_bike">Desbloquear Bici</string>
     <string name="route_summary">Resumen de la Ruta</string>
     <string name="rewards">Recompensas</string>
+    <string name="reserv_bike">Seleccione para rservar</string>
+    <string name="reserve_bike">Seleccione para Reservar</string>
+    <string name="bike_status">Estado de la bici</string>
+    <string name="default_stop_id">1</string>
+    <string name="scan_qr">Escanea el QR para bloquear</string>
+    <string name="battery_content">Batería: </string>
+    <!-- Strings related to login -->
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="welcome">"Welcome!"</string>
+    <string name="invalid_username">Not a valid username</string>
+    <string name="invalid_password">Password must be >5 characters</string>
+    <string name="login_failed">"Login failed"</string>
+    <string name="login">Iniciar Sesión</string>
+    <string name="User_not_loggedin">No hay sesión de usuario activa</string>
+    <string name="user_not_logged_desc">Inicie sesión para poder acceder a todas las funcionalidades</string>
+    <string name="logout">Cerrar Sesión</string>
+    <string name="redeemed">Obtenidas</string>
+    <string name="available_rewards">Disponibles</string>
+    <string name="available_points">Puntos disponibles:</string>
 
 </resources>
