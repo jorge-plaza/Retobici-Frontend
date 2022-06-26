@@ -34,6 +34,12 @@ class UserPreferences @Inject constructor(
         }
     }
 
+    suspend fun updatePoints(points: Int){
+        dataStore.edit { preferences ->
+            preferences[USER_POINTS] = points
+        }
+    }
+
     suspend fun cleanUser() {
         dataStore.edit { preferences ->
             preferences[USER_POINTS] = -1

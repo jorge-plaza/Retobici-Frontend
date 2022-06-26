@@ -129,5 +129,8 @@
     <string name="User_not_loggedin">No hay sesión de usuario activa</string>
     <string name="user_not_logged_desc">Inicie sesión para poder acceder a todas las funcionalidades</string>
     <string name="logout">Cerrar Sesión</string>
+    <string name="redeemed">Obtenidas</string>
+    <string name="available_rewards">Disponibles</string>
+    <string name="available_points">Puntos disponibles:</string>
 
 </resources>

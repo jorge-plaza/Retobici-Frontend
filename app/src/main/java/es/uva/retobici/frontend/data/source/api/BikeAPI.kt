@@ -8,7 +8,7 @@ import retrofit2.http.*
 
 interface BikeAPI {
 
-    @POST("/bikes/unlock/{bike}/")
+    @POST("stops/{bike}/unlock")
     suspend fun postUnlockBike(
         @Path("bike") bike: Int,
         @Header("Authorization") token: String

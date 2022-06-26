@@ -24,7 +24,7 @@ class NetworkModule {
     @Provides
     fun providesRetrofit():Retrofit{
         return Retrofit.Builder()
-            .baseUrl("https://c4804667-8963-4bac-9b82-cee4ef549e3a.mock.pstmn.io")
+            .baseUrl("https://13e4-93-57-21-108.eu.ngrok.io/api/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }

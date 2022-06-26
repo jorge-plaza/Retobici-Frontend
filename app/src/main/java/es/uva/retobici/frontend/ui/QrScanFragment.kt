@@ -10,6 +10,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.findNavController
 import com.budiyev.android.codescanner.AutoFocusMode
 import com.budiyev.android.codescanner.CodeScanner
@@ -35,6 +36,7 @@ class QrScanFragment : Fragment(){
     private val binding get() = _binding!!
     private val homeViewModel : HomeViewModel by activityViewModels()
     private var idScanned: Int? = null
+    private var finalStopScanned: Boolean = false;
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -65,6 +67,11 @@ class QrScanFragment : Fragment(){
                         binding.layoutBattery.visibility = View.VISIBLE
                     }
                     else binding.layoutBattery.visibility = View.INVISIBLE
+                }
+                is QrBikeState.QrScannedEnd -> {
+                    binding.routeButton.isEnabled = true
+                    binding.routeButton.text = "Finalizar ruta"
+                    finalStopScanned = false
                 }
             }
         }
@@ -97,7 +104,12 @@ class QrScanFragment : Fragment(){
                     homeViewModel.performRoute(null)
                     view?.findNavController()?.navigateUp()
                 }
-                is RouteState.ActiveRoute -> {homeViewModel.performRoute(2)}
+                is RouteState.ActiveRoute -> {
+                    if (homeViewModel.bikeAvailable.value is QrBikeState.QrScannedEnd){
+                        val stopID = (homeViewModel.bikeAvailable.value as QrBikeState.QrScannedEnd).stop.id
+                        homeViewModel.performRoute(stopID)
+                    }
+                }
                 is RouteState.FinishedRoute -> {view?.findNavController()?.navigate(com.mapbox.navigation.examples.R.id.action_qr_scan_to_routeSummaryFragment)}
             }
         }
@@ -126,7 +138,12 @@ class QrScanFragment : Fragment(){
 
         // Callbacks
         codeScanner.decodeCallback = DecodeCallback {
-            unlockBike(it)
+            when(homeViewModel.route.value){
+                null -> unlockBike(it)
+                is RouteState.NoRoute -> unlockBike(it)
+                is RouteState.ActiveRoute -> lockBike(it.text.toInt())
+                is RouteState.FinishedRoute -> {}
+            }
         }
         codeScanner.errorCallback = ErrorCallback { // or ErrorCallback.SUPPRESS
             Log.d("qr", "Camera initialization error: ${it.message}")
@@ -142,6 +159,13 @@ class QrScanFragment : Fragment(){
         if (idScanned == null || it.text.toInt() != idScanned) {
             idScanned = it.text.toInt()
             homeViewModel.getBike(it.text.toInt())
+        }
+    }
+
+    private fun lockBike(stop: Int){
+        if (!finalStopScanned){
+            homeViewModel.setBike(stop)
+            finalStopScanned = true
         }
     }
 

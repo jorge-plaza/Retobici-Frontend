@@ -18,6 +18,7 @@ class UserRemoteDataSource @Inject constructor(
     override suspend fun login(email: String, password:String): User {
         return withContext(Dispatchers.IO){
             val response = api.login(email, password)
+            Log.d("ibai", response.body().toString())
             response.body()!!.toUserAuthenticated()
         }
     }
@@ -25,7 +26,10 @@ class UserRemoteDataSource @Inject constructor(
     override suspend fun logout(): Boolean {
         return withContext(Dispatchers.IO){
             val token = userPreferences.authToken.first()
-            val response = api.logout(token!!)
+            Log.d("ibai", token!!)
+            val response = api.logout("Bearer ${token!!}")
+            Log.d("ibai", response.body().toString())
+            Log.d("ibai", response.code().toString())
             response.body()!!
         }
     }

@@ -19,6 +19,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.asLiveData
 import androidx.navigation.findNavController
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -53,6 +54,7 @@ import com.mapbox.navigation.examples.databinding.AnnotationViewNumberStopBindin
 import com.mapbox.navigation.examples.databinding.FragmentHomeBinding
 import dagger.hilt.android.AndroidEntryPoint
 import es.uva.retobici.frontend.MasterActivity
+import es.uva.retobici.frontend.data.UserPreferences
 import es.uva.retobici.frontend.domain.model.Bike
 import es.uva.retobici.frontend.domain.model.ElectricBike
 import es.uva.retobici.frontend.domain.model.Stop
@@ -61,6 +63,7 @@ import es.uva.retobici.frontend.ui.RouteState
 //import es.uva.retobici.frontend.turnbyturn.MAPBOX_ACCESS_TOKEN_PLACEHOLDER
 import org.json.JSONObject
 import java.util.*
+import javax.inject.Inject
 import kotlin.time.Duration.Companion.convert
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.DurationUnit
@@ -83,7 +86,7 @@ class HomeFragment : Fragment(), PermissionsListener {
     private val pointAnnotationManager get() = _pointAnnotationManager!!
     private val annotationApi get() = _annotationApi!!
 
-
+    @Inject lateinit var userPreferences: UserPreferences
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -196,6 +199,22 @@ class HomeFragment : Fragment(), PermissionsListener {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         _bottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheetContentStop.persistentBottomSheetStop)
         _bottomSheetBehaviorRoute = BottomSheetBehavior.from(binding.bottomSheetContentRoute.persistentBottomSheetRoute)
+
+        userPreferences.authToken.asLiveData().observe(viewLifecycleOwner){ authToken ->
+            if (authToken==null || authToken=="invalid" || authToken.isEmpty()){
+                binding.qrScan.visibility = View.INVISIBLE
+                binding.bottomSheetContentStop.pedalBikeLayout.isClickable = false
+                binding.bottomSheetContentStop.electricBikeLayout.isClickable = false
+                binding.bottomSheetContentStop.reserveBikeButton.text = "Necesitas iniciar sesión para reservar"
+                binding.bottomSheetContentStop.reserveBikeButton.isEnabled = false
+            }else{
+                binding.qrScan.visibility = View.VISIBLE
+                binding.bottomSheetContentStop.pedalBikeLayout.isClickable = true
+                binding.bottomSheetContentStop.electricBikeLayout.isClickable = true
+                binding.bottomSheetContentStop.reserveBikeButton.text = "Seleccione para Reservar"
+                binding.bottomSheetContentStop.reserveBikeButton.isEnabled = false
+            }
+        }
 
         homeViewModel.loading.observe(this.viewLifecycleOwner){ masterActivity.loading(it) }
 
@@ -574,10 +593,10 @@ class HomeFragment : Fragment(), PermissionsListener {
                     .withIconImage(it)
                     .withIconAnchor(IconAnchor.BOTTOM)
             }
-            pointAnnotationManager?.deleteAll()
-            pointAnnotationManager?.create(listWithIcons)
+            pointAnnotationManager.deleteAll()
+            pointAnnotationManager.create(listWithIcons)
 
-            pointAnnotationManager?.addClickListener{ stopClicked ->
+            pointAnnotationManager.addClickListener{ stopClicked ->
                 val cameraPosition = CameraOptions.Builder()
                     .zoom(14.5)
                     .center(stopClicked.geometry)

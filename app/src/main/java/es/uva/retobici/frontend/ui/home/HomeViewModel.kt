@@ -18,6 +18,7 @@ import es.uva.retobici.frontend.ui.QrBikeState
 import es.uva.retobici.frontend.ui.ReservationState
 import es.uva.retobici.frontend.ui.RouteState
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,6 +28,7 @@ class HomeViewModel @Inject constructor(
     private val startRouteUseCase: StartRouteUseCase,
     private val endRouteUseCase: EndRouteUseCase,
     private val reserveBikeUseCase: ReserveBikeUseCase,
+    private val lockBikeUseCase: LockBikeUseCase,
 
     private val userPreferences: UserPreferences
 ) : ViewModel() {
@@ -61,9 +63,17 @@ class HomeViewModel @Inject constructor(
     fun getBike(stop: Int){
         loading.postValue(true)
         viewModelScope.launch {
-            //TODO change unlock use case to get available bike
             val availableBike: Bike = unlockBikeUseCase(stop)
             bikeAvailable.postValue(QrBikeState.QrScanned(availableBike))
+            loading.postValue(false)
+        }
+    }
+
+    fun setBike(stop: Int){
+        loading.postValue(true)
+        viewModelScope.launch {
+            val availableStop: Stop = lockBikeUseCase(stop)
+            bikeAvailable.postValue(QrBikeState.QrScannedEnd(availableStop))
             loading.postValue(false)
         }
     }
@@ -82,6 +92,9 @@ class HomeViewModel @Inject constructor(
                 route.postValue(RouteState.ActiveRoute(result))
                 loading.postValue(false)
             }
+            val result:List<Stop> = getStopsUseCase()
+            val mut = result.toMutableList()
+            stops.postValue(mut)
         }
     }
 
@@ -94,7 +107,12 @@ class HomeViewModel @Inject constructor(
                 result= endRouteUseCase(this.route, stop, seconds.value!!)
             }
             route.postValue(RouteState.FinishedRoute(result!!))
+            val newPoints = userPreferences.points.first()?.plus(result!!.points!!)
+            userPreferences.updatePoints(newPoints!!)
             loading.postValue(false)
+            val refreshStops:List<Stop> = getStopsUseCase()
+            val mut = refreshStops.toMutableList()
+            stops.postValue(mut)
         }
     }
 

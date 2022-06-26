@@ -1,5 +1,6 @@
 package es.uva.retobici.frontend.data.repositories
 
+import android.util.Log
 import es.uva.retobici.frontend.data.UserPreferences
 import es.uva.retobici.frontend.data.source.api.BikeAPI
 import es.uva.retobici.frontend.data.source.dto.toBikeModel
@@ -21,10 +22,9 @@ class BikeRemoteDataSource @Inject constructor(
     override suspend fun unlockBike(bike: Int): Bike {
         return withContext(Dispatchers.IO){
             val token = userPreferences.authToken.first()
-            val response = api.postUnlockBike(bike, token!!)
+            val response = api.postUnlockBike(bike, "Bearer ${token!!}")
             // ?: if response is null empty list
             //response.body()?.map { it.toStopModel() } ?: emptyList()
-            //TODO check the nullable response
             response.body()!!.toBikeModel()
         }
     }
