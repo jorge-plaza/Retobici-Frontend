@@ -110,7 +110,9 @@ class QrScanFragment : Fragment(){
                         homeViewModel.performRoute(stopID)
                     }
                 }
-                is RouteState.FinishedRoute -> {view?.findNavController()?.navigate(com.mapbox.navigation.examples.R.id.action_qr_scan_to_routeSummaryFragment)}
+                is RouteState.FinishedRoute -> {
+                    view?.findNavController()?.navigate(com.mapbox.navigation.examples.R.id.action_qr_scan_to_routeSummaryFragment)
+                }
             }
         }
 

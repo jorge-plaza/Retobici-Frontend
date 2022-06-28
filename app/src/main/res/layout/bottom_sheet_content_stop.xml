@@ -101,7 +101,7 @@
             android:layout_marginStart="8dp"
             android:gravity="start|top"
             android:text="@string/count_pedal_bike"
-            android:textColor="@color/colorAccent"
+            android:textColor="@color/primaryDarkColor"
             android:textSize="20sp"
             android:textStyle="bold" />
 
@@ -144,7 +144,7 @@
             android:text="@string/count_electric_bike"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="@color/colorError"/>
+            android:textColor="@color/primaryDarkColor"/>
     </LinearLayout>
     <com.google.android.material.divider.MaterialDivider
         android:layout_width="match_parent"
@@ -181,7 +181,7 @@
             android:text="@string/count_bike_stop"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="@color/colorAccent"/>
+            android:textColor="@color/secondaryColor"/>
     </LinearLayout>
     <com.google.android.material.divider.MaterialDivider
         android:layout_width="match_parent"

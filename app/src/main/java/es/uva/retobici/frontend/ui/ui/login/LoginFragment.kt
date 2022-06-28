@@ -44,7 +44,6 @@ class LoginFragment : Fragment() {
 
         _binding = FragmentLoginBinding.inflate(inflater, container, false)
         masterActivity = activity as MasterActivity
-        //userPreferences = UserPreferences(context = requireContext())
         return binding.root
 
     }

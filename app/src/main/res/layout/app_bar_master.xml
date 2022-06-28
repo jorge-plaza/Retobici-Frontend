@@ -28,8 +28,8 @@
             android:layout_height="wrap_content"
             android:indeterminate="true"
             android:visibility="visible"
-            app:indicatorColor="@color/colorAccent"
-            app:trackColor="@color/colorPrimary"
+            app:indicatorColor="@color/secondaryColor"
+            app:trackColor="@color/primaryColor"
             app:trackThickness="8dp" />
 
     </com.google.android.material.appbar.AppBarLayout>

@@ -373,14 +373,10 @@ class HomeFragment : Fragment(), PermissionsListener {
             }
             com.mapbox.navigation.examples.R.id.route_status -> {
                 bottomSheetBehaviorRoute.state = BottomSheetBehavior.STATE_EXPANDED
-                true
-            }
-            com.mapbox.navigation.examples.R.id.search -> {
-                // navigate to settings screen
-                true
-            }
-            com.mapbox.navigation.examples.R.id.more -> {
-                // save profile changes
+                if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED)
+                {
+                    bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+                }
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -630,6 +626,10 @@ class HomeFragment : Fragment(), PermissionsListener {
     private fun openBottomDrawer() {
         binding.bottomSheetContentStop.persistentBottomSheetStop.visibility = View.VISIBLE
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+        if (bottomSheetBehaviorRoute.state == BottomSheetBehavior.STATE_EXPANDED)
+        {
+            bottomSheetBehaviorRoute.state = BottomSheetBehavior.STATE_HIDDEN
+        }
     }
 
     private fun addViewAnnotation(

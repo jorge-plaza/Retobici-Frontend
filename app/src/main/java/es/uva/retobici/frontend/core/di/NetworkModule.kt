@@ -24,7 +24,7 @@ class NetworkModule {
     @Provides
     fun providesRetrofit():Retrofit{
         return Retrofit.Builder()
-            .baseUrl("https://13e4-93-57-21-108.eu.ngrok.io/api/")
+            .baseUrl("http://192.168.1.15:8000/api/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }

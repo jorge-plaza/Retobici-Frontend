@@ -85,8 +85,11 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             loading.postValue(true)
             val result = logOutUseCase()
-            loading.postValue(false)
-            _logoutResult.postValue(result)
+            if (result){
+                _loginResult.value = LoginResult(null)
+                loading.postValue(false)
+                _logoutResult.postValue(result)
+            }
         }
     }
 }

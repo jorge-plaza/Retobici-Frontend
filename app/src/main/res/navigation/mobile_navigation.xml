@@ -36,7 +36,7 @@
     <fragment
         android:id="@+id/qr_scan"
         android:name="es.uva.retobici.frontend.ui.QrScanFragment"
-        android:label="@string/unlock_bike"
+        android:label="@string/scan_qr_fragment"
         tools:layout="@layout/fragment_scan_qr">
         <action
             android:id="@+id/action_qr_scan_to_nav_home"
@@ -62,7 +62,7 @@
     <fragment
         android:id="@+id/loginFragment"
         android:name="es.uva.retobici.frontend.ui.ui.login.LoginFragment"
-        android:label="fragment_login"
+        android:label="Inicio de Sesión"
         tools:layout="@layout/fragment_login" />
 
 </navigation>

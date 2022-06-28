@@ -122,9 +122,9 @@
     <string name="action_sign_in">Sign in or register</string>
     <string name="action_sign_in_short">Sign in</string>
     <string name="welcome">"Welcome!"</string>
-    <string name="invalid_username">Not a valid username</string>
-    <string name="invalid_password">Password must be >5 characters</string>
-    <string name="login_failed">"Login failed"</string>
+    <string name="invalid_username">Email invalido</string>
+    <string name="invalid_password">La contraseña debe tener como mínimo 6 carácteres</string>
+    <string name="login_failed">"Inicio de sesión fallido"</string>
     <string name="login">Iniciar Sesión</string>
     <string name="User_not_loggedin">No hay sesión de usuario activa</string>
     <string name="user_not_logged_desc">Inicie sesión para poder acceder a todas las funcionalidades</string>
@@ -132,5 +132,7 @@
     <string name="redeemed">Obtenidas</string>
     <string name="available_rewards">Disponibles</string>
     <string name="available_points">Puntos disponibles:</string>
+    <string name="scan_qr_fragment">QR Scaner</string>
+    <string name="bike_id_label">Indentificador:</string>
 
 </resources>

@@ -9,8 +9,14 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
 import com.mapbox.navigation.examples.databinding.FragmentRouteSummaryBinding
 import dagger.hilt.android.AndroidEntryPoint
+import es.uva.retobici.frontend.MasterActivity
 import es.uva.retobici.frontend.domain.model.Route
 import es.uva.retobici.frontend.ui.home.HomeViewModel
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit
+import kotlin.time.ExperimentalTime
 
 /**
  * A simple [Fragment] subclass.
@@ -22,6 +28,7 @@ class RouteSummaryFragment : Fragment() {
     private var _binding: FragmentRouteSummaryBinding? = null
     private val binding get() = _binding!!
     private val homeViewModel : HomeViewModel by activityViewModels()
+    private lateinit var masterActivity: MasterActivity
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -29,6 +36,9 @@ class RouteSummaryFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentRouteSummaryBinding.inflate(inflater, container, false)
+        masterActivity = activity as MasterActivity
+        homeViewModel.loading.observe(viewLifecycleOwner){ masterActivity.loading(it) }
+
         homeViewModel.route.observe(this.viewLifecycleOwner){ route ->
             when(route){
                 is RouteState.NoRoute -> {
@@ -52,10 +62,20 @@ class RouteSummaryFragment : Fragment() {
 
     private fun showRouteInfo(route: Route) {
         val distance = route.distance.toString()
-        val duration = route.duration.toString()
+        val time = experimentalConversion(route.duration)
         val points = route.points.toString()
         binding.routeDistance.text = "$distance metros"
-        binding.routeDuration.text = "$duration minutos"
+        binding.routeDuration.text = time
         binding.routePoints.text = "$points puntos"
+    }
+
+    @OptIn(ExperimentalTime::class)
+    fun experimentalConversion(seconds: Int?): String{
+        val converted = seconds?.let { Duration.convert(
+            it.toDouble(),
+            DurationUnit.SECONDS,
+            DurationUnit.MINUTES
+        ).minutes }
+        return converted.toString()
     }
 }
