@@ -1,7 +1,5 @@
 package es.uva.retobici.frontend.core
 
-import android.util.Log
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.*
 
@@ -9,7 +7,7 @@ class Timer {
 
     private val job = SupervisorJob()
     private val scope = CoroutineScope(Dispatchers.Default + job)
-    val seconds = MutableLiveData<Int>(0)
+    val seconds = MutableLiveData(0)
 
     private fun startCoroutineTimer(delayMillis: Long = 0, repeatMillis: Long = 0, action: () -> Unit) = scope.launch(Dispatchers.IO) {
         seconds.postValue(0)
@@ -34,10 +32,6 @@ class Timer {
             //doSomethingMainThread()
         }
         */
-    }
-
-    fun startTimer() {
-        timer.start()
     }
 
     fun cancelTimer() {

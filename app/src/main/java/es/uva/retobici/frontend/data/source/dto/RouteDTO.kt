@@ -1,7 +1,6 @@
 package es.uva.retobici.frontend.data.source.dto
 
 import com.google.gson.annotations.SerializedName
-import es.uva.retobici.frontend.domain.model.Bike
 import es.uva.retobici.frontend.domain.model.Route
 
 data class RouteDTO (

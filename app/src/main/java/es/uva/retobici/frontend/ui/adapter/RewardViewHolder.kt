@@ -10,7 +10,7 @@ class RewardViewHolder(
     view: View
 ): RecyclerView.ViewHolder(view) {
 
-    val binding = ItemRewardBinding.bind(view)
+    private val binding = ItemRewardBinding.bind(view)
 
     fun render(reward: Reward, authenticated: Boolean, userPoints: Int,onClickListener: (Reward) -> Unit){
         binding.rewardTitle.text = reward.title

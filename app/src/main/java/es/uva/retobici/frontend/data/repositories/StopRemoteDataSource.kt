@@ -1,9 +1,6 @@
 package es.uva.retobici.frontend.data.repositories
 
-import android.util.Log
-import es.uva.retobici.frontend.data.UserPreferences
 import es.uva.retobici.frontend.domain.model.Stop
-import es.uva.retobici.frontend.data.models.StopProvider
 import es.uva.retobici.frontend.data.source.api.StopAPI
 import es.uva.retobici.frontend.data.source.dto.toStopModel
 import es.uva.retobici.frontend.domain.repository.StopRepository

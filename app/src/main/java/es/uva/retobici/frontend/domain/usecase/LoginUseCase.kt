@@ -3,10 +3,8 @@ package es.uva.retobici.frontend.domain.usecase
 import es.uva.retobici.frontend.data.repositories.UserLocalDataSource
 import es.uva.retobici.frontend.data.repositories.UserRemoteDataSource
 import es.uva.retobici.frontend.domain.model.User
-import es.uva.retobici.frontend.ui.data.Result
-import es.uva.retobici.frontend.ui.data.model.LoggedInUser
+import es.uva.retobici.frontend.ui.viewmodels.states.Result
 import java.io.IOException
-import java.util.*
 import javax.inject.Inject
 
 class LoginUseCase @Inject constructor(

@@ -1,8 +1,6 @@
 package es.uva.retobici.frontend.data.source.api
 
-import es.uva.retobici.frontend.data.source.dto.BikeDTO
 import es.uva.retobici.frontend.data.source.dto.RewardDTO
-import es.uva.retobici.frontend.domain.model.Reward
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Header

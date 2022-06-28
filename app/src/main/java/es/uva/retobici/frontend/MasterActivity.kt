@@ -2,15 +2,13 @@ package es.uva.retobici.frontend
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.location.Location
 import android.os.Bundle
-import android.util.Log
-import android.view.Menu
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.navigation.NavigationView
 import androidx.navigation.findNavController
@@ -22,20 +20,18 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.get
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.asLiveData
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
-import com.mapbox.android.core.location.LocationEngineProvider
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.navigation.examples.databinding.ActivityMasterBinding
 import com.mapbox.navigation.examples.R
 import dagger.hilt.android.AndroidEntryPoint
-import es.uva.retobici.frontend.data.UserPreferences
-import es.uva.retobici.frontend.ui.ui.login.LoginViewModel
-import es.uva.retobici.utilities.LocationListeningCallback
+import es.uva.retobici.frontend.data.repositories.UserPreferences
+import es.uva.retobici.frontend.ui.viewmodels.LoginViewModel
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -44,13 +40,23 @@ class MasterActivity: AppCompatActivity(), PermissionsListener {
     @Inject lateinit var userPreferences: UserPreferences
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMasterBinding
+    private val permissionsManager = PermissionsManager(this)
     private val loginViewModel: LoginViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
+        if (!isMapboxTokenProvided()) {
+            showNoTokenErrorDialog()
+            return
+        }
 
         binding = ActivityMasterBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        if (!PermissionsManager.areLocationPermissionsGranted(this)) {
+            permissionsManager.requestLocationPermissions(this)
+        }
 
         setSupportActionBar(binding.appBarMaster.topAppBar)
 
@@ -65,12 +71,11 @@ class MasterActivity: AppCompatActivity(), PermissionsListener {
         // menu should be considered as top level destinations.
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.nav_home, R.id.nav_gallery, R.id.nav_gallery, R.id.nav_slideshow
+                R.id.nav_home, R.id.loginFragment
             ), drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
-
 
         loginViewModel.logoutResult.observe(this){ logout ->
             if (logout){
@@ -132,8 +137,6 @@ class MasterActivity: AppCompatActivity(), PermissionsListener {
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 
-    private val permissionsManager = PermissionsManager(this)
-
     override fun onExplanationNeeded(permissionsToExplain: MutableList<String>?) {
         Toast.makeText(
             this,
@@ -179,6 +182,20 @@ class MasterActivity: AppCompatActivity(), PermissionsListener {
         }
     }
 
+    private fun isMapboxTokenProvided() =
+        getString(R.string.mapbox_access_token) != MAPBOX_ACCESS_TOKEN_PLACEHOLDER
+
+    private fun showNoTokenErrorDialog() {
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.noTokenDialogTitle))
+            .setMessage(getString(R.string.noTokenDialogBody))
+            .setCancelable(false)
+            .setPositiveButton("Ok") { _, _ ->
+                finish()
+            }
+            .show()
+    }
+
     fun loading(visible: Boolean){
         if (visible){
             binding.appBarMaster.progressIndicator.visibility = View.VISIBLE
@@ -187,3 +204,4 @@ class MasterActivity: AppCompatActivity(), PermissionsListener {
         }
     }
 }
+private const val MAPBOX_ACCESS_TOKEN_PLACEHOLDER = "YOUR_MAPBOX_ACCESS_TOKEN_GOES_HERE"

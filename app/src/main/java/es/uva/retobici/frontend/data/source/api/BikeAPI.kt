@@ -1,10 +1,10 @@
 package es.uva.retobici.frontend.data.source.api
 
 import es.uva.retobici.frontend.data.source.dto.BikeDTO
-import es.uva.retobici.frontend.data.source.dto.StopDTO
-import es.uva.retobici.frontend.domain.model.Bike
 import retrofit2.Response
-import retrofit2.http.*
+import retrofit2.http.Header
+import retrofit2.http.POST
+import retrofit2.http.Path
 
 interface BikeAPI {
 

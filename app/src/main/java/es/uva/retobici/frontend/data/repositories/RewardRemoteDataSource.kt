@@ -1,16 +1,12 @@
 package es.uva.retobici.frontend.data.repositories
 
-import android.util.Log
-import es.uva.retobici.frontend.data.UserPreferences
 import es.uva.retobici.frontend.data.source.api.RewardAPI
-import es.uva.retobici.frontend.data.source.dto.RewardDTO
 import es.uva.retobici.frontend.data.source.dto.toRewardModel
 import es.uva.retobici.frontend.domain.model.Reward
 import es.uva.retobici.frontend.domain.repository.RewardRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import retrofit2.Response
 import javax.inject.Inject
 
 class RewardRemoteDataSource @Inject constructor(

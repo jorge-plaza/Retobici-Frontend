@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/nav_home"
-        android:name="es.uva.retobici.frontend.ui.home.HomeFragment"
+        android:name="es.uva.retobici.frontend.ui.fragments.HomeFragment"
         android:label="@string/menu_home"
         tools:layout="@layout/fragment_home" >
         <action
@@ -22,20 +22,8 @@
     </fragment>
 
     <fragment
-        android:id="@+id/nav_gallery"
-        android:name="es.uva.retobici.frontend.ui.gallery.GalleryFragment"
-        android:label="@string/menu_gallery"
-        tools:layout="@layout/fragment_scan_qr" />
-
-    <fragment
-        android:id="@+id/nav_slideshow"
-        android:name="es.uva.retobici.frontend.ui.slideshow.SlideshowFragment"
-        android:label="@string/menu_slideshow"
-        tools:layout="@layout/fragment_slideshow" />
-
-    <fragment
         android:id="@+id/qr_scan"
-        android:name="es.uva.retobici.frontend.ui.QrScanFragment"
+        android:name="es.uva.retobici.frontend.ui.fragments.QrScanFragment"
         android:label="@string/scan_qr_fragment"
         tools:layout="@layout/fragment_scan_qr">
         <action
@@ -47,7 +35,7 @@
     </fragment>
     <fragment
         android:id="@+id/routeSummaryFragment"
-        android:name="es.uva.retobici.frontend.ui.RouteSummaryFragment"
+        android:name="es.uva.retobici.frontend.ui.fragments.RouteSummaryFragment"
         android:label="@string/route_summary"
         tools:layout="@layout/fragment_route_summary" >
         <action
@@ -57,11 +45,11 @@
     <fragment
         android:id="@+id/nav_rewards"
         android:label="@string/rewards"
-        android:name="es.uva.retobici.frontend.ui.RewardsFragment"
+        android:name="es.uva.retobici.frontend.ui.fragments.RewardsFragment"
         tools:layout="@layout/fragment_rewards" />
     <fragment
         android:id="@+id/loginFragment"
-        android:name="es.uva.retobici.frontend.ui.ui.login.LoginFragment"
+        android:name="es.uva.retobici.frontend.ui.fragments.LoginFragment"
         android:label="Inicio de Sesión"
         tools:layout="@layout/fragment_login" />
 

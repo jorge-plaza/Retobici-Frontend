@@ -1,9 +1,6 @@
 package es.uva.retobici.frontend.data.source.dto
 
 import com.google.gson.annotations.SerializedName
-import es.uva.retobici.frontend.domain.model.Bike
-import es.uva.retobici.frontend.domain.model.ElectricBike
-import es.uva.retobici.frontend.domain.model.PedalBike
 import es.uva.retobici.frontend.domain.model.Stop
 
 data class StopDTO(

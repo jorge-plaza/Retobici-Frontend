@@ -1,6 +1,6 @@
 package es.uva.retobici.frontend.data.repositories
 
-import es.uva.retobici.frontend.data.UserPreferences
+import android.util.Log
 import es.uva.retobici.frontend.data.source.api.RouteAPI
 import es.uva.retobici.frontend.data.source.dto.toRouteModel
 import es.uva.retobici.frontend.domain.model.Bike
@@ -25,7 +25,9 @@ class RouteRemoteDataSource @Inject constructor(
     override suspend fun finishRoute(route: Route): Route {
         return withContext(Dispatchers.IO){
             val token = userPreferences.authToken.first()
+            Log.d("calor", route.toString())
             val response = api.postFinishRoute("Bearer $token", route)
+            Log.d("calor", response.toString())
             response.body()!!.toRouteModel()
         }
     }

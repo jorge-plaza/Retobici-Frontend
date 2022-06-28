@@ -134,5 +134,6 @@
     <string name="available_points">Puntos disponibles:</string>
     <string name="scan_qr_fragment">QR Scaner</string>
     <string name="bike_id_label">Indentificador:</string>
+    <string name="_1000">1000</string>
 
 </resources>

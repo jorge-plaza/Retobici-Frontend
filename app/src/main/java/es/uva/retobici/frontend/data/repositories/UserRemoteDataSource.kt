@@ -1,7 +1,6 @@
 package es.uva.retobici.frontend.data.repositories
 
 import android.util.Log
-import es.uva.retobici.frontend.data.UserPreferences
 import es.uva.retobici.frontend.data.source.api.UserAPI
 import es.uva.retobici.frontend.data.source.dto.toUserAuthenticated
 import es.uva.retobici.frontend.domain.model.User
@@ -27,7 +26,7 @@ class UserRemoteDataSource @Inject constructor(
         return withContext(Dispatchers.IO){
             val token = userPreferences.authToken.first()
             Log.d("ibai", token!!)
-            val response = api.logout("Bearer ${token!!}")
+            val response = api.logout("Bearer $token")
             Log.d("ibai", response.body().toString())
             Log.d("ibai", response.code().toString())
             response.body()!!

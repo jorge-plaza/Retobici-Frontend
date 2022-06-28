@@ -2,8 +2,6 @@ package es.uva.retobici.frontend.domain.model
 
 import com.google.gson.JsonElement
 import com.google.gson.JsonParser
-import com.google.gson.annotations.SerializedName
-import kotlin.reflect.typeOf
 
 data class Stop (
     val id: Int,
@@ -16,16 +14,16 @@ data class Stop (
     val reservedElectricBikes: Int,
 ){
     val location: com.mapbox.geojson.Point = com.mapbox.geojson.Point.fromLngLat(lng,lat)
-    fun getCountPedalBike(): Int{
+    private fun getCountPedalBike(): Int{
         return bikes.filterIsInstance<PedalBike>().size-reservedPedalBikes
     }
-    fun getCountElectricBike(): Int{
+    private fun getCountElectricBike(): Int{
         return bikes.filterIsInstance<ElectricBike>().size-reservedElectricBikes
     }
-    fun getCountBikeStop(): Int{
+    private fun getCountBikeStop(): Int{
         return totalSpaces-bikes.size-getTotalReservations()
     }
-    fun getTotalReservations(): Int{
+    private fun getTotalReservations(): Int{
         return reservedPedalBikes+reservedElectricBikes
     }
 

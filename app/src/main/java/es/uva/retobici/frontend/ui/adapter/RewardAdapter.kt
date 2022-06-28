@@ -1,6 +1,5 @@
 package es.uva.retobici.frontend.ui.adapter
 
-import android.content.DialogInterface
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView

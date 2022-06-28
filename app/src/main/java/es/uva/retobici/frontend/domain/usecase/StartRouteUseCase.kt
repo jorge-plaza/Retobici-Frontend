@@ -1,6 +1,5 @@
 package es.uva.retobici.frontend.domain.usecase
 
-import android.util.Log
 import es.uva.retobici.frontend.data.repositories.RouteRemoteDataSource
 import es.uva.retobici.frontend.domain.model.Bike
 import es.uva.retobici.frontend.domain.model.Route
