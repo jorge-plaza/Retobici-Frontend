@@ -45,7 +45,6 @@ data class Stop (
     }
 
     override fun equals(other: Any?): Boolean {
-        //Todo check this
         val otherCast = other as Stop
         if (this.hashCode() != otherCast.hashCode()) return false
         return this.id == otherCast.id

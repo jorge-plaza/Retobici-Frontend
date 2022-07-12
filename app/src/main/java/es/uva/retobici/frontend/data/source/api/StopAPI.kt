@@ -18,7 +18,7 @@ interface StopAPI {
         @Path("type") type: String
     ): Response<StopDTO>
 
-    @POST("stops/{stop}/lock/")
+    @GET("stops/{stop}/lock/")
     suspend fun getLockBike(
         @Header("Authorization") token: String,
         @Path("stop") stop: Int,

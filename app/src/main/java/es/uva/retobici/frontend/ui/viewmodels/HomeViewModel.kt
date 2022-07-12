@@ -4,7 +4,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import es.uva.retobici.frontend.core.Timer
+import es.uva.retobici.frontend.core.utility.Timer
 import es.uva.retobici.frontend.data.repositories.UserPreferences
 import es.uva.retobici.frontend.domain.model.Bike
 import es.uva.retobici.frontend.domain.model.Route

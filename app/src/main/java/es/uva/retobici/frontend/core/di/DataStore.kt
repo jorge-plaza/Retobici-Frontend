@@ -13,7 +13,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import es.uva.retobici.frontend.core.Constants.PREFERENCES_NAME
+import es.uva.retobici.frontend.core.utility.Constants.PREFERENCES_NAME
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

@@ -26,14 +26,6 @@ class RewardsViewModel @Inject constructor(
     val rewards = MutableLiveData<List<Reward>>()
     val loading = MutableLiveData(false)
 
-    /*
-    init {
-        viewModelScope.launch {
-            val result:List<Reward> = getRewardsUseCase()
-            rewards.postValue(result)
-        }
-    }*/
-
     fun getAllRewards(){
         viewModelScope.launch {
             loading.postValue(true)

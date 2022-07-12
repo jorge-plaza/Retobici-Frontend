@@ -170,7 +170,6 @@ class HomeFragment : Fragment() {
 
         binding.qrScan.setOnClickListener { view ->
             //Load QR scan Fragment
-            //TODO fix packages
             view.findNavController().navigate(com.mapbox.navigation.examples.R.id.action_nav_home_to_qr_scan)
         }
 
