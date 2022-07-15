@@ -7,7 +7,6 @@
     android:background="#FFFFFF"
     android:orientation="vertical"
     app:behavior_hideable="true"
-    app:behavior_peekHeight="64dp"
     app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
 
@@ -20,14 +19,41 @@
         android:textAlignment="center"
         android:textSize="25sp" />
 
-    <TextView
-        android:id="@+id/stop_title"
+    <LinearLayout
+        android:id="@+id/stop_name_"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:gravity="top|center_horizontal"
-        android:text="@string/default_stop_title"
-        android:textAlignment="center"
-        android:textSize="25sp" />
+        android:layout_height="48dp"
+        android:background="?android:attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_vertical|center_horizontal">
+
+        <TextView
+            android:id="@+id/stop_id"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:gravity="top|center_horizontal"
+            android:text="@string/default_stop_id"
+            android:textAlignment="center"
+            android:textSize="25sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:gravity="top|center_horizontal"
+            android:text=" - "
+            android:textAlignment="center"
+            android:textSize="25sp" />
+
+        <TextView
+            android:id="@+id/stop_title"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:gravity="top|center_horizontal"
+            android:text="@string/default_stop_title"
+            android:textAlignment="center"
+            android:textSize="25sp" />
+    </LinearLayout>
     <TextView
         android:id="@+id/stop_distance"
         android:layout_width="match_parent"
@@ -48,7 +74,8 @@
         android:background="?android:attr/selectableItemBackground"
         android:clickable="true"
         android:focusable="true"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        >
 
         <ImageView
             android:layout_width="wrap_content"
@@ -74,14 +101,15 @@
             android:layout_marginStart="8dp"
             android:gravity="start|top"
             android:text="@string/count_pedal_bike"
-            android:textColor="@color/colorAccent"
+            android:textColor="@color/primaryDarkColor"
             android:textSize="20sp"
             android:textStyle="bold" />
 
     </LinearLayout>
     <com.google.android.material.divider.MaterialDivider
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        app:dividerInsetEnd="25dp"/>
     <LinearLayout
         android:id="@+id/electric_bike_layout"
         android:layout_width="match_parent"
@@ -116,11 +144,12 @@
             android:text="@string/count_electric_bike"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="@color/colorError"/>
+            android:textColor="@color/primaryDarkColor"/>
     </LinearLayout>
     <com.google.android.material.divider.MaterialDivider
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        app:dividerInsetEnd="25dp"/>
     <LinearLayout
         android:id="@+id/bike_stop_layout"
         android:layout_width="match_parent"
@@ -152,7 +181,7 @@
             android:text="@string/count_bike_stop"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="@color/colorAccent"/>
+            android:textColor="@color/secondaryColor"/>
     </LinearLayout>
     <com.google.android.material.divider.MaterialDivider
         android:layout_width="match_parent"
@@ -164,13 +193,25 @@
         android:gravity="center_horizontal">
 
         <Button
-            android:id="@+id/go_to_stop_button"
+            android:id="@+id/reserve_bike_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="8dp"
+            android:layout_marginHorizontal="60dp"
+            android:text="@string/reserve_bike"
+            style="@style/Widget.MaterialComponents.Button.Icon"
+            android:enabled="false"
+            />
+
+        <Button
+            android:id="@+id/scan_qr_on_stop_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:text="@string/how_to_approach"
-            app:icon="@drawable/ic_baseline_directions_24"
+            android:layout_marginVertical="8dp"
+            android:text="@string/scan_qr"
             style="@style/Widget.MaterialComponents.Button.Icon"
+            app:icon="@drawable/ic_baseline_qr_code_scanner_24"
+            android:visibility="gone"
             />
     </LinearLayout>
 </LinearLayout>

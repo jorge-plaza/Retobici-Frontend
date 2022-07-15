@@ -2,8 +2,6 @@ package es.uva.retobici.frontend.domain.model
 
 import com.google.gson.JsonElement
 import com.google.gson.JsonParser
-import com.google.gson.annotations.SerializedName
-import kotlin.reflect.typeOf
 
 data class Stop (
     val id: Int,
@@ -12,21 +10,27 @@ data class Stop (
     val address: String,
     val totalSpaces: Int,
     val bikes: List<Bike>,
+    val reservedPedalBikes: Int,
+    val reservedElectricBikes: Int,
 ){
     val location: com.mapbox.geojson.Point = com.mapbox.geojson.Point.fromLngLat(lng,lat)
-    fun getCountPedalBike(): Int{
-        return bikes.filterIsInstance<PedalBike>().size
+    private fun getCountPedalBike(): Int{
+        return bikes.filterIsInstance<PedalBike>().size-reservedPedalBikes
     }
-    fun getCountElectricBike(): Int{
-        return bikes.filterIsInstance<ElectricBike>().size
+    private fun getCountElectricBike(): Int{
+        return bikes.filterIsInstance<ElectricBike>().size-reservedElectricBikes
     }
-    fun getCountBikeStop(): Int{
-        return totalSpaces-bikes.size
+    private fun getCountBikeStop(): Int{
+        return totalSpaces-bikes.size-getTotalReservations()
+    }
+    private fun getTotalReservations(): Int{
+        return reservedPedalBikes+reservedElectricBikes
     }
 
     fun toJson(): JsonElement{
         val json = """
             {
+                id: "$id",
                 address: "$address",
                 count_bike_pedal: "${getCountPedalBike()}",
                 count_bike_electric: "${getCountElectricBike()}",
@@ -37,6 +41,21 @@ data class Stop (
     }
 
     fun getTotalBikeCount(): Int {
-        return bikes.size
+        return bikes.size - getTotalReservations()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        val otherCast = other as Stop
+        if (this.hashCode() != otherCast.hashCode()) return false
+        return this.id == otherCast.id
+    }
+
+    override fun hashCode(): Int {
+        var result = id
+        result = 31 * result + lng.hashCode()
+        result = 31 * result + lat.hashCode()
+        result = 31 * result + address.hashCode()
+        result = 31 * result + location.hashCode()
+        return result
     }
 }

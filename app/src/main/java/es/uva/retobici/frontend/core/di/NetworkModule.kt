@@ -4,10 +4,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import es.uva.retobici.frontend.data.source.api.BikeAPI
-import es.uva.retobici.frontend.data.source.api.RewardAPI
-import es.uva.retobici.frontend.data.source.api.RouteAPI
-import es.uva.retobici.frontend.data.source.api.StopAPI
+import es.uva.retobici.frontend.data.source.api.*
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
@@ -21,7 +18,7 @@ class NetworkModule {
     @Provides
     fun providesRetrofit():Retrofit{
         return Retrofit.Builder()
-            .baseUrl("https://c4804667-8963-4bac-9b82-cee4ef549e3a.mock.pstmn.io")
+            .baseUrl("http://192.168.1.15:8000/api/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
@@ -60,5 +57,14 @@ class NetworkModule {
     @Provides
     fun providesRewardApi(retrofit: Retrofit): RewardAPI {
         return retrofit.create(RewardAPI::class.java)
+    }
+
+    /**
+     * This is provided because you can not Inject an interface
+     */
+    @Singleton
+    @Provides
+    fun providesUserApi(retrofit: Retrofit): UserAPI {
+        return retrofit.create(UserAPI::class.java)
     }
 }

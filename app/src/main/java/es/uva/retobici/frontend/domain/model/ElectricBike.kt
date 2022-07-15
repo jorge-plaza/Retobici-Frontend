@@ -1,7 +1,7 @@
 package es.uva.retobici.frontend.domain.model
 
-data class ElectricBike(
-    override val id: Int,
-    override val unlocked: Boolean,
+class ElectricBike(
+    bike_id: Int,
+    unlocked: Boolean,
     var battery: Float,
-): Bike(id,unlocked) {}
+): Bike(bike_id, unlocked)

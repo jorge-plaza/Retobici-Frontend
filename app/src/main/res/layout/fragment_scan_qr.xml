@@ -10,42 +10,93 @@
         android:id="@+id/scanner_view"
         android:layout_width="match_parent"
         android:layout_height="500dp"
-        app:autoFocusButtonColor="@color/colorAccent"
+        app:autoFocusButtonColor="@color/primaryColor"
         app:autoFocusButtonVisible="true"
-        app:flashButtonColor="@color/colorAccent"
+        app:flashButtonColor="@color/primaryColor"
         app:flashButtonVisible="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:maskColor="#65000000" />
 
-    <TextView
-        android:id="@+id/bike_scanned_text"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/scanned_bike_layout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_below="@id/scanner_view"
-        android:layout_margin="40dp"
-        />
+        android:layout_below="@+id/scanner_view"
+        android:layout_marginTop="22dp"
+        android:orientation="vertical"
+        android:visibility="invisible">
+
+        <LinearLayout
+            android:id="@+id/layout_id"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/label_id"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/bike_id_label"
+                android:textSize="24sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/bike_scanned_id"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="24sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/label_id"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layout_battery"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/label_battery"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/battery_content"
+                android:textSize="24sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/bike_battery_content"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="24sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/label_id"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </LinearLayout>
+
+    </LinearLayout>
 
     <Button
-        android:id="@+id/start_route_button"
-        android:layout_width="wrap_content"
+        android:id="@+id/route_button"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/start_route"
-        android:layout_centerHorizontal="true"
-        android:layout_below="@id/bike_scanned_text"
-        android:visibility="invisible"
-        />
+        android:layout_below="@id/scanned_bike_layout"
+        android:layout_marginHorizontal="30dp"
+        android:layout_marginTop="26dp"
+        android:enabled="false"
+        android:text="@string/start_route" />
 
-    <com.google.android.material.progressindicator.CircularProgressIndicator
-        android:id="@+id/start_trip_progress_bar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_below="@id/bike_scanned_text"
-        android:indeterminate="true"
-        android:visibility="invisible"
-        />
 
 </RelativeLayout>

@@ -1,15 +1,17 @@
 package es.uva.retobici.frontend.data.source.api
 
 import es.uva.retobici.frontend.data.source.dto.BikeDTO
-import es.uva.retobici.frontend.data.source.dto.StopDTO
-import es.uva.retobici.frontend.domain.model.Bike
 import retrofit2.Response
-import retrofit2.http.*
+import retrofit2.http.Header
+import retrofit2.http.POST
+import retrofit2.http.Path
 
 interface BikeAPI {
-    @POST("/retobici/bikes/unlock/{bike}/")
-    suspend fun postUnlockBike(@Path("bike") bike: Int): Response<BikeDTO>
 
-    @POST("/retobici/bikes/reserve/{bike}/")
-    suspend fun postReserveBike(@Path("bike") bike: Int): Response<StopDTO>
+    @POST("stops/{bike}/unlock")
+    suspend fun postUnlockBike(
+        @Path("bike") bike: Int,
+        @Header("Authorization") token: String
+    ): Response<BikeDTO>
+
 }

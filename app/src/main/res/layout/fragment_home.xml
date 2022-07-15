@@ -6,127 +6,84 @@
     android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="es.uva.retobici.frontend.ui.home.HomeFragment">
+    tools:context="es.uva.retobici.frontend.ui.fragments.HomeFragment">
 
 
     <com.mapbox.maps.MapView
         android:id="@+id/mapView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        mapbox:mapbox_cameraTargetLat="41.6521980085908"
-        mapbox:mapbox_cameraTargetLng="-4.724492467501443"
-        mapbox:mapbox_cameraZoom="15.0" />
-
-    <androidx.cardview.widget.CardView
-        android:id="@+id/tripProgressCard"
-        android:layout_width="0dp"
+        mapbox:mapbox_cameraTargetLat="41.65158054600416"
+        mapbox:mapbox_cameraTargetLng="-4.7290962771139595"
+        mapbox:mapbox_cameraZoom="14.6" />
+    <RelativeLayout
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:visibility="invisible"
-        app:cardElevation="8dp"
-        app:cardUseCompatPadding="false"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <com.mapbox.navigation.ui.tripprogress.view.MapboxTripProgressView
-            android:id="@+id/tripProgressView"
+        android:layout_gravity="bottom"
+        >
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:id="@+id/container_bottom"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="match_parent"
+            >
 
-        <ImageView
-            android:id="@+id/stop"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_gravity="end|center_vertical"
-            android:layout_marginEnd="12dp"
-            app:srcCompat="@android:drawable/ic_delete" />
-    </androidx.cardview.widget.CardView>
+        <include
+            android:id="@+id/bottom_sheet_content_stop"
+            layout="@layout/bottom_sheet_content_stop"
+            android:visibility="visible" />
 
-    <com.mapbox.navigation.ui.maneuver.view.MapboxManeuverView
-        android:id="@+id/maneuverView"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_margin="4dp"
-        android:visibility="invisible"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+            <include
+                android:id="@+id/bottom_sheet_content_route"
+                layout="@layout/bottom_sheet_content_route"
+                android:visibility="gone" />
 
-    <com.mapbox.navigation.ui.voice.view.MapboxSoundButton
-        android:id="@+id/soundButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="16dp"
-        android:visibility="invisible"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/maneuverView" />
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-    <com.mapbox.navigation.ui.maps.camera.view.MapboxRouteOverviewButton
-        android:id="@+id/routeOverview"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="16dp"
-        android:visibility="invisible"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/soundButton" />
-
-    <!--
-    <com.mapbox.navigation.ui.maps.camera.view.MapboxRecenterButton
-        android:id="@+id/recenter"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="86dp"
-        app:layout_anchor="@id/qr_scan"
-        app:layout_anchorGravity="top"
-        android:layout_gravity="top|end"
-        app:layout_constraintEnd_toEndOf="parent" />-->
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/constraintLayout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
-        app:layout_dodgeInsetEdges="bottom">
-
-
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/recenter_location"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/constraintLayout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:contentDescription="@string/recenter_user_location_button"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/qr_scan"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:srcCompat="@drawable/ic_baseline_my_location_24" />
+            android:layout_gravity="bottom|end"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="72dp"
+            android:layout_alignBottom="@+id/container_bottom"
+            android:layout_alignEnd="@+id/container_bottom"
+            >
 
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/qr_scan"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:contentDescription="@string/qr_content_desc"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:srcCompat="@drawable/ic_baseline_qr_code_scanner_24" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/recenter_location"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:contentDescription="@string/recenter_user_location_button"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/qr_scan"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:srcCompat="@drawable/ic_baseline_my_location_24"
+                android:elevation="0dp"
+                app:backgroundTint="@color/secondaryLightColor"
+                />
 
-    <include
-        android:id="@+id/bottom_sheet_content_stop"
-        layout="@layout/bottom_sheet_content_stop"
-        android:visibility="visible" />
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/qr_scan"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:contentDescription="@string/qr_content_desc"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:backgroundTint="@color/secondaryLightColor"
+                app:srcCompat="@drawable/ic_baseline_qr_code_scanner_light_24" />
 
-    <include
-        android:id="@+id/bottom_sheet_content_route"
-        layout="@layout/bottom_sheet_content_route"
-        android:visibility="gone" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </RelativeLayout>
+
+
+
 
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
